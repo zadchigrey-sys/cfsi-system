@@ -1,0 +1,56 @@
+html {
+  scroll-behavior: smooth;
+}
+body {
+  font-family: "Inter", sans-serif;
+}
+.nav-scrolled {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid #f3f4f6;
+}
+
+@keyframes bounce-slow {
+  0%,
+  100% {
+    transform: translateY(0) translateX(-50%);
+  }
+  50% {
+    transform: translateY(-8px) translateX(-50%);
+  }
+}
+
+.scroll-hint {
+  animation: bounce-slow 2s infinite;
+}
+
+/* Fixed fade-up animations */
+.fade-up {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.6s ease;
+}
+
+.fade-up.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Mobile navbar text optimization */
+@media (max-width: 640px) {
+  #nav-title {
+    font-size: 0.75rem !important; /* 12px */
+    line-height: 1.2;
+  }
+}
+.nav-hover {
+  transition: all 0.2s ease;
+}
+
+.nav-hover:hover {
+  background-color: #1a3a6b;
+  color: white;
+}
+select:invalid {
+  color: gray;
+}
