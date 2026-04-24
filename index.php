@@ -380,7 +380,11 @@
 
               <div class="mt-4">
                 <p class="font-semibold text-yellow-300">Follow Us</p>
-                <a href="#" class="text-blue-300 hover:underline">Facebook</a>
+                <a href="https://www.facebook.com/profile.php?id=100057246438734" 
+                target="_blank"
+                class="text-blue-400 hover:text-blue-600 underline flex items-center gap-1">
+                <i class="ri-facebook-fill"></i> Facebook
+                </a>
               </div>
             </div>
 
