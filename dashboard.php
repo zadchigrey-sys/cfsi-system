@@ -29,11 +29,11 @@ $totalStudents = $result->fetch_assoc()['total'];
 <body class="bg-gray-100 flex">
 
 <!-- SIDEBAR -->
-<div class="w-64 bg-[#1a3a6b] text-white min-h-screen p-5">
+<div class="w-64 bg-[#1a3a6b] text-white h-screen fixed left-0 top-0 p-5">
     <h2 class="text-xl font-bold mb-6">CFSI Billing System</h2>
 
     <a href="dashboard.php" class="block py-2 hover:bg-[#2a5298] rounded px-2">Dashboard</a>
-    <a href="students.php" class="block py-2 hover:bg-[#2a5298] rounded px-2">Students List</a>
+    <a href="students.php" class="block py-2 hover:bg-[#2a5298] rounded px-2">Students</a>
     <a href="billing.php" class="block py-2 hover:bg-[#2a5298] rounded px-2">Billing</a>
     <a href="payments.php" class="block py-2 hover:bg-[#2a5298] rounded px-2">Payments</a>
     <a href="reports.php" class="block py-2 hover:bg-[#2a5298] rounded px-2">Reports</a>
@@ -46,36 +46,53 @@ $totalStudents = $result->fetch_assoc()['total'];
 </div>
 
 <!-- MAIN CONTENT -->
-<div class="flex-1 p-6">
+<div class="flex-1 p-6 ml-64">
 
-    <!-- HEADER -->
-    <div class="flex justify-between items-center mb-6">
+   <!-- HEADER -->
+<div class="flex justify-between items-center mb-6">
 
-    <!-- LEFT: SCHOOL NAME + SEARCH -->
+    <!-- LEFT: SCHOOL NAME -->
+    <h1 class="text-xl font-semibold text-[#1a3a6b] whitespace-nowrap">
+        CHILDREN OF FATIMA SCHOOL OF STO. TOMAS, INC.
+    </h1>
+
+    <!-- RIGHT: SEARCH + PROFILE -->
     <div class="flex items-center gap-4">
 
-        <!-- SCHOOL NAME -->
-        <h1 class="text-2xl font-bold text-[#1a3a6b]">
-            CHILDREN OF FATIMA SCHOOL OF STO. TOMAS, INC.
-        </h1>
-
         <!-- SEARCH BAR -->
-        <form action="students.php" method="GET" class="relative">
-            <input 
-                type="text" 
-                name="search" 
-                placeholder="Search student..." 
-                class="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
+        <form action="search.php" method="GET" class="relative">
+    <!-- ICON -->
+    <i class="ri-search-line absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg"></i>
 
-            <!-- ICON -->
-            <i class="ri-search-line absolute left-3 top-2.5 text-gray-500"></i>
-        </form>
+    <!-- INPUT -->
+    <input 
+        type="text" 
+        name="search" 
+        placeholder="Search content..."
+        class="pl-12 pr-4 py-2.5 w-64 
+               bg-white border border-gray-300 
+               rounded-full shadow-sm
+               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+               text-sm transition"
+    >
+</form>
+
+        <!-- PROFILE -->
+        <div class="flex items-center gap-2 cursor-pointer">
+
+            <!-- Avatar Circle -->
+            <div class="w-10 h-10 bg-[#1a3a6b] text-white flex items-center justify-center rounded-full font-bold">
+                <?php echo strtoupper(substr($user['name'], 0, 1)); ?>
+            </div>
+
+            <!-- Optional Name (small) -->
+            <span class="text-sm font-medium text-gray-700 hidden md:block">
+                <?php echo $user['name']; ?>
+            </span>
+
+        </div>
 
     </div>
-
-    <!-- RIGHT: USER -->
-    <p>Welcome, <?php echo $user['name']; ?></p>
 
 </div>
 
@@ -104,28 +121,119 @@ $totalStudents = $result->fetch_assoc()['total'];
 
     </div>
 
-    <!-- QUICK ACTION BUTTONS -->
-<div class="mt-6 flex gap-3">
+    <!-- TABS -->
+<div class="mt-6 border-b flex gap-6 text-sm font-medium">
 
-    <a href="add_student.php"
-       class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
-       Add Student
-    </a>
+    <button onclick="showTab('students')" id="tab-students"
+        class="pb-2 border-b-2 border-blue-600 text-blue-600">
+        Students
+    </button>
 
-    <a href="#"
-       class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
-       Create Billing
-    </a>
-
-    <a href="#"
-       class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">
-       Record Payment
-    </a>
+    <button onclick="showTab('billing')" id="tab-billing"
+        class="pb-2 text-gray-500 hover:text-blue-600">
+        Billing
+    </button>
 
 </div>
 
-    
+<!-- STUDENTS VIEW -->
+<div class="flex justify-between items-center mb-4">
 
+    <!-- LEFT: TITLE -->
+    <div>
+        <h2 class="text-lg font-semibold">Students</h2>
+        <p class="text-sm text-gray-400">Quick view</p>
+    </div>
+
+    <!-- RIGHT: SEARCH + BUTTON -->
+    <div class="flex items-center gap-3">
+
+        <!-- SEARCH BAR -->
+       <form id="quickSearchForm" method="GET" class="relative">
+    <!-- ICON -->
+    <i class="ri-search-line absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
+
+    <!-- INPUT -->
+    <input 
+        type="text" 
+        name="search" 
+        placeholder="Search students or bills..."
+        class="pl-12 pr-4 py-2.5 w-64 
+               bg-white border border-gray-300 
+               rounded-full shadow-sm
+               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+               text-sm transition"
+    >
+</form>
+
+        <!-- ADD BUTTON -->
+        <a href="add_student.php"
+           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">
+           + Add student
+        </a>
+
+    </div>
+    
+</div>
+
+<div class="flex gap-2 mb-3">
+    <select class="border rounded px-3 py-1 text-sm">
+        <option>Status</option>
+        <option>Active</option>
+        <option>Inactive</option>
+    </select>
+
+    <select class="border rounded px-3 py-1 text-sm">
+        <option>Grade</option>
+        <option>Grade 7</option>
+        <option>Grade 8</option>
+    </select>
+</div>
+
+    <?php
+    $students = $conn->query("SELECT * FROM students LIMIT 5");
+    while($row = $students->fetch_assoc()):
+    ?>
+
+    <div class="bg-white p-4 rounded-xl shadow mb-3">
+
+        <h3 class="font-semibold"><?php echo $row['full_name']; ?></h3>
+        <p class="text-sm text-gray-500">ID: <?php echo $row['student_id']; ?></p>
+
+        <div class="mt-2 text-sm">
+            <span class="bg-green-100 text-green-600 px-2 py-1 rounded">
+                Active
+            </span>
+        </div>
+
+        <div class="mt-3 text-sm text-gray-600">
+            Grade: <?php echo $row['grade_level']; ?> |
+            Section: <?php echo $row['section']; ?>
+        </div>
+
+    </div>
+
+    <?php endwhile; ?>
+
+</div>
+
+<!-- BILLING VIEW -->
+<div id="billing" class="mt-4 hidden">
+
+    <h2 class="text-lg font-semibold mb-3">Billing</h2>
+
+    <div class="bg-white p-4 rounded-xl shadow">
+
+        <p class="text-gray-500 text-sm">No billing data yet.</p>
+
+        <a href="#"
+           class="inline-block mt-3 bg-green-600 text-white px-3 py-1 rounded text-sm">
+           + Create Billing
+        </a>
+
+    </div>
+
+</div>
 </div>
 
 </body>

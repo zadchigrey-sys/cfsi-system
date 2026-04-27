@@ -1,0 +1,147 @@
+<?php
+session_start();
+include "db.php";
+
+if (!isset($_SESSION['user'])) {
+    header("Location: index.php");
+    exit();
+}
+
+$user = $_SESSION['user'];
+
+// DATA
+$totalStudents = $conn->query("SELECT COUNT(*) as total FROM
+students")->fetch_assoc()['total']; ?>
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body class="bg-gray-100 flex">
+    <!-- SIDEBAR -->
+    <div class="w-64 bg-white shadow-lg min-h-screen p-5">
+      <h2 class="text-lg font-bold mb-6 text-[#1a3a6b]">Registrar Billing</h2>
+
+      <nav class="space-y-2 text-gray-700">
+        <a href="#" class="block p-2 rounded hover:bg-gray-100">🏠 Home</a>
+        <a href="student.php" class="block p-2 rounded hover:bg-gray-100"
+          >👨‍🎓 Students</a
+        >
+        <a href="#" class="block p-2 rounded hover:bg-gray-100">💳 Billings</a>
+        <a href="#" class="block p-2 rounded hover:bg-gray-100">📊 Reports</a>
+      </nav>
+
+      <!-- USER -->
+      <div class="mt-10 border-t pt-4">
+        <p class="font-semibold"><?php echo $user['name']; ?></p>
+        <p class="text-sm text-gray-500"><?php echo $user['email']; ?></p>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="flex-1">
+      <!-- HEADER (GRADIENT LIKE SOFTR) -->
+      <div class="bg-gradient-to-r from-blue-400 to-purple-400 p-6 text-white">
+        <div class="flex justify-between items-center">
+          <div>
+            <p class="text-sm">Welcome back, <?php echo $user['name']; ?></p>
+            <h1 class="text-2xl font-bold">
+              Review balances, issue billings, and record payments.
+            </h1>
+          </div>
+
+          <!-- SEARCH -->
+          <input
+            type="text"
+            placeholder="Search..."
+            class="px-4 py-2 rounded-lg text-black w-64"
+          />
+        </div>
+      </div>
+
+      <!-- CONTENT -->
+      <div class="p-6">
+        <!-- SUMMARY CARDS -->
+        <div class="grid grid-cols-3 gap-4 mb-6">
+          <div class="bg-white p-5 rounded-xl shadow">
+            <h3 class="text-gray-500">Total Students</h3>
+            <p class="text-2xl font-bold"><?php echo $totalStudents; ?></p>
+          </div>
+
+          <div class="bg-white p-5 rounded-xl shadow">
+            <h3 class="text-gray-500">Total Billed</h3>
+            <p class="text-2xl font-bold">₱0.00</p>
+          </div>
+
+          <div class="bg-white p-5 rounded-xl shadow">
+            <h3 class="text-gray-500">Total Balance Due</h3>
+            <p class="text-2xl font-bold">₱0.00</p>
+          </div>
+        </div>
+
+        <!-- STUDENTS SECTION -->
+        <div class="bg-white p-6 rounded-xl shadow">
+          <div class="flex justify-between mb-4">
+            <h2 class="text-xl font-bold">Students</h2>
+
+            <div class="flex gap-2">
+              <input
+                type="text"
+                placeholder="Search students..."
+                class="border px-3 py-2 rounded"
+              />
+              <a
+                href="add_student.php"
+                class="bg-blue-600 text-white px-4 py-2 rounded"
+                >+ Add Student</a
+              >
+            </div>
+          </div>
+
+          <!-- STUDENT LIST -->
+          <?php $students = $conn->query("SELECT * FROM students"); ?>
+
+          <table class="w-full text-left">
+            <thead class="border-b">
+              <tr>
+                <th class="p-2">Student ID</th>
+                <th class="p-2">Name</th>
+                <th class="p-2">Grade</th>
+                <th class="p-2">Section</th>
+                <th class="p-2">Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <?php while($row = $students->fetch_assoc()): ?>
+              <tr class="border-b hover:bg-gray-50">
+                <td class="p-2"><?php echo $row['student_id']; ?></td>
+                <td class="p-2"><?php echo $row['full_name']; ?></td>
+                <td class="p-2"><?php echo $row['grade_level']; ?></td>
+                <td class="p-2"><?php echo $row['section']; ?></td>
+                <td class="p-2 space-x-2">
+                  <a
+                    href="edit_student.php?id=<?php echo $row['id']; ?>"
+                    class="text-blue-600"
+                    >Edit</a
+                  >
+                  <a
+                    href="delete_student.php?id=<?php echo $row['id']; ?>"
+                    class="text-red-600"
+                    >Delete</a
+                  >
+                </td>
+              </tr>
+              <?php endwhile; ?>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

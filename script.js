@@ -107,3 +107,93 @@ const appearOnScroll = new IntersectionObserver(
 faders.forEach((fader) => {
   appearOnScroll.observe(fader);
 });
+
+function showTab(tab) {
+  // hide all
+  document.getElementById("students").classList.add("hidden");
+  document.getElementById("billing").classList.add("hidden");
+
+  // reset styles
+  document
+    .getElementById("tab-students")
+    .classList.remove("border-blue-600", "text-blue-600");
+  document
+    .getElementById("tab-billing")
+    .classList.remove("border-blue-600", "text-blue-600");
+
+  // show selected
+  document.getElementById(tab).classList.remove("hidden");
+
+  // highlight tab
+  document
+    .getElementById("tab-" + tab)
+    .classList.add("border-blue-600", "text-blue-600");
+}
+
+function showTab(tab) {
+  document
+    .getElementById("students")
+    .classList.toggle("hidden", tab !== "students");
+  document
+    .getElementById("billing")
+    .classList.toggle("hidden", tab !== "billing");
+
+  // CHANGE FORM ACTION BASED ON TAB
+  const form = document.getElementById("quickSearchForm");
+
+  if (tab === "students") {
+    form.action = "students.php";
+  } else {
+    form.action = "billing.php";
+  }
+}
+
+function testClick() {
+  alert("JS is working!");
+}
+
+function openAddModal() {
+  const modal = document.getElementById("studentModal");
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+
+  // ✅ RESET FORM
+  document.getElementById("studentForm").reset();
+
+  // ✅ CLEAR HIDDEN ID (IMPORTANT)
+  document.getElementById("student_id_hidden").value = "";
+
+  // ✅ CHANGE TITLE + BUTTON
+  document.getElementById("modalTitle").innerText = "Add Student";
+  document.getElementById("submitBtn").innerText = "Save Student";
+
+  // ✅ SET FORM ACTION
+  document.getElementById("studentForm").action = "save_student.php";
+}
+
+function openEditModal(id, student_id, name, grade, section) {
+  const modal = document.getElementById("studentModal");
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+
+  // ✅ SET VALUES
+  document.getElementById("student_id_hidden").value = id;
+  document.getElementById("student_id").value = student_id;
+  document.getElementById("full_name").value = name;
+  document.getElementById("grade_level").value = grade;
+  document.getElementById("section").value = section;
+
+  // ✅ CHANGE TITLE + BUTTON
+  document.getElementById("modalTitle").innerText = "Edit Student";
+  document.getElementById("submitBtn").innerText = "Update Student";
+
+  // ✅ SET FORM ACTION
+  document.getElementById("studentForm").action = "save_student.php";
+}
+
+function closeModal() {
+  const modal = document.getElementById("studentModal");
+
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+}

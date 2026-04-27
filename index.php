@@ -540,7 +540,7 @@
               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2a5298] focus:border-transparent transition"
             >
               <option value="" disabled selected hidden>Select Role</option>
-              <option value="staff">Staff</option>
+              <option value="registrar">Registrar</option>
               <option value="administrator">Administrator</option>
             </select>
           </div>
