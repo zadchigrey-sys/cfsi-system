@@ -37,6 +37,8 @@ $totalStudents = $result->fetch_assoc()['total'];
     <a href="billing.php" class="block py-2 hover:bg-[#2a5298] rounded px-2">Billing</a>
     <a href="payments.php" class="block py-2 hover:bg-[#2a5298] rounded px-2">Payments</a>
     <a href="reports.php" class="block py-2 hover:bg-[#2a5298] rounded px-2">Reports</a>
+    <a href="recycle_bin.php" class="block py-2 hover:bg-[#2a5298] rounded px-2">Recycle Bin</a>
+    <a href="logs.php" class="block py-2 hover:bg-[#2a5298] rounded px-2">Audit Logs</a>
 
     <?php if ($user['role'] == 'administrator'): ?>
         <a href="#" class="block py-2 hover:bg-[#2a5298] rounded px-2">Users</a>
@@ -220,20 +222,41 @@ $totalStudents = $result->fetch_assoc()['total'];
 <!-- BILLING VIEW -->
 <div id="billing" class="mt-4 hidden">
 
-    <h2 class="text-lg font-semibold mb-3">Billing</h2>
+<h2 class="text-lg font-semibold mb-3">Billing</h2>
 
-    <div class="bg-white p-4 rounded-xl shadow">
+<?php
+$billings = $conn->query("SELECT * FROM billings ORDER BY billing_date DESC LIMIT 5");
+while($row = $billings->fetch_assoc()):
+?>
 
-        <p class="text-gray-500 text-sm">No billing data yet.</p>
+<div class="bg-white p-4 rounded-xl shadow mb-3">
 
-        <a href="#"
-           class="inline-block mt-3 bg-green-600 text-white px-3 py-1 rounded text-sm">
-           + Create Billing
-        </a>
+    <h3 class="font-semibold"><?php echo $row['billing_id']; ?></h3>
 
+    <div class="mt-2">
+        <span class="bg-green-100 text-green-600 px-2 py-1 rounded text-sm">
+            <?php echo $row['status']; ?>
+        </span>
+    </div>
+
+    <div class="text-sm text-gray-600 mt-2">
+        Billing: <?php echo $row['billing_date']; ?><br>
+        Due: <?php echo $row['due_date']; ?>
+    </div>
+
+    <div class="mt-2 font-bold text-blue-600">
+        ₱<?php echo number_format($row['total_amount'],2); ?>
     </div>
 
 </div>
+
+<?php endwhile; ?>
+
+<a href="billing.php"
+class="inline-block mt-3 bg-blue-600 text-white px-4 py-2 rounded text-sm">
+View All Billing
+</a>
+
 </div>
 
 </body>

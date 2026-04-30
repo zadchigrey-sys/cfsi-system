@@ -28,6 +28,8 @@ $user = $_SESSION['user'];
     <a href="billing.php" class="block py-2 hover:bg-[#2a5298] rounded px-2">Billing</a>
     <a href="payments.php" class="block py-2 hover:bg-[#2a5298] rounded px-2">Payments</a>
     <a href="reports.php" class="block py-2 hover:bg-[#2a5298] rounded px-2">Reports</a>
+    <a href="recycle_bin.php" class="block py-2 hover:bg-[#2a5298] rounded px-2">Recycle Bin</a>
+    <a href="logs.php" class="block py-2 hover:bg-[#2a5298] rounded px-2">Audit Logs</a>
 
     <?php if ($user['role'] == 'administrator'): ?>
         <a href="#" class="block py-2 hover:bg-[#2a5298] rounded px-2">Users</a>
@@ -70,6 +72,6 @@ $user = $_SESSION['user'];
     <?php echo $content; ?>
 
 </div>
-<script src="/cfsi-system/script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>

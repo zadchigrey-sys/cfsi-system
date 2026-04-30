@@ -2,28 +2,23 @@
 session_start();
 include "db.php";
 
-if (!isset($_SESSION['user'])) {
-    header("Location: index.php");
-    exit();
-}
-
 if (isset($_GET['id'])) {
 
     $id = $_GET['id'];
     $user = $_SESSION['user']['name'];
 
-    // ✅ SOFT DELETE
-    $stmt = $conn->prepare("UPDATE students SET deleted_at = NOW() WHERE id = ?");
+    // ✅ SOFT DELETE (not permanent)
+    $stmt = $conn->prepare("UPDATE billings SET deleted_at = NOW() WHERE id = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
 
-    // ✅ AUDIT LOG
+    // ✅ LOG
     $log = $conn->prepare("INSERT INTO audit_logs (action, table_name, record_id, user_name)
-                           VALUES ('DELETE', 'students', ?, ?)");
+                           VALUES ('DELETE', 'billings', ?, ?)");
     $log->bind_param("is", $id, $user);
     $log->execute();
 
-    header("Location: students.php?deleted=1");
+    header("Location: billing.php?deleted=1");
     exit();
 }
 ?>

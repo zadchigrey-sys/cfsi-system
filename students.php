@@ -10,7 +10,7 @@ if (!empty($search)) {
     $stmt->execute();
     $result = $stmt->get_result();
 } else {
-    $result = $conn->query("SELECT * FROM students");
+    $result = $conn->query("SELECT * FROM students WHERE deleted_at IS NULL");
 }
 
 ob_start(); // START CONTENT
@@ -61,10 +61,10 @@ onclick="openEditModal(
     '<?php echo $row['grade_level']; ?>',
     '<?php echo $row['section']; ?>'
 )"
-class="bg-yellow-500 text-white px-2 py-1 rounded">
-Edit
-</button>
-                <a href="delete_student.php?id=<?php echo $row['id']; ?>" class="bg-red-500 text-white px-2 py-1 rounded">Delete</a>
+class="bg-yellow-500 text-white px-2 py-1 rounded">Edit</button>
+                <a href="delete_student.php?id=<?php echo $row['id']; ?>" 
+   onclick="return confirm('Are you sure you want to delete this student?')"
+   class="bg-red-500 text-white px-2 py-1 rounded">Delete</a>
             </td>
         </tr>
         <?php endwhile; ?>
