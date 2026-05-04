@@ -217,3 +217,20 @@ function openEditBilling(id, bid, fee, status, bdate, ddate, amount) {
   document.getElementById("billingTitle").innerText = "Edit Billing";
   document.getElementById("billingSubmit").innerText = "Update Billing";
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+  // ✅ Default tab
+  showTab("students");
+
+  // ✅ Calendar
+  const calendarEl = document.getElementById("calendar");
+
+  if (calendarEl) {
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: "dayGridMonth",
+      events: events,
+    });
+
+    calendar.render();
+  }
+});

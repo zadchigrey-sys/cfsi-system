@@ -8,6 +8,24 @@ if (!isset($_SESSION['user'])) {
 }
 
 $user = $_SESSION['user'];
+// ===== CALENDAR EVENTS =====
+$events = [];
+
+$result = $conn->query("SELECT billing_id, billing_date, due_date 
+                        FROM billings 
+                        WHERE deleted_at IS NULL");
+
+while($row = $result->fetch_assoc()) {
+    $events[] = [
+        'title' => 'Billing: ' . $row['billing_id'],
+        'date' => $row['billing_date']
+    ];
+
+    $events[] = [
+        'title' => 'Due: ' . $row['billing_id'],
+        'date' => $row['due_date']
+    ];
+}
 
 // 👇 ADD THIS HERE
 $result = $conn->query("SELECT COUNT(*) as total FROM students");
@@ -22,6 +40,9 @@ $totalStudents = $result->fetch_assoc()['total'];
 <title>Dashboard</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+
 <link rel="stylesheet" href="style.css">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 </head>
@@ -139,6 +160,7 @@ $totalStudents = $result->fetch_assoc()['total'];
 </div>
 
 <!-- STUDENTS VIEW -->
+<div id="students" class="mt-4">
 <div class="flex justify-between items-center mb-4">
 
     <!-- LEFT: TITLE -->
@@ -179,21 +201,42 @@ $totalStudents = $result->fetch_assoc()['total'];
 </div>
 
 <div class="flex gap-2 mb-3">
-    <select class="border rounded px-3 py-1 text-sm">
-        <option>Status</option>
-        <option>Active</option>
-        <option>Inactive</option>
+
+    <!-- STATUS -->
+    <select class="border rounded px-3 py-1 text-sm" required>
+        <option value="" disabled selected hidden>Status</option>
+        <option value="Active">Active</option>
+        <option value="Inactive">Inactive</option>
     </select>
 
-    <select class="border rounded px-3 py-1 text-sm">
-        <option>Grade</option>
+    <!-- GRADE -->
+    <select class="border rounded px-3 py-1 text-sm" required>
+        <option value="" disabled selected hidden>Grade level</option>
+        <option>Nursery</option>
+        <option>Kinder</option>
+        <option>Grade 1</option>
+        <option>Grade 2</option>
+        <option>Grade 3</option>
+        <option>Grade 4</option>
+        <option>Grade 5</option>
+        <option>Grade 6</option>
         <option>Grade 7</option>
         <option>Grade 8</option>
+        <option>Grade 9</option>
+        <option>Grade 10</option>
+        <option>Grade 11</option>
+        <option>Grade 12</option>
     </select>
+
 </div>
 
     <?php
-    $students = $conn->query("SELECT * FROM students LIMIT 5");
+    $students = $conn->query("
+    SELECT * FROM students 
+    WHERE deleted_at IS NULL 
+    ORDER BY id DESC 
+    LIMIT 5
+");
     while($row = $students->fetch_assoc()):
     ?>
 
@@ -216,16 +259,57 @@ $totalStudents = $result->fetch_assoc()['total'];
     </div>
 
     <?php endwhile; ?>
-
 </div>
 
 <!-- BILLING VIEW -->
 <div id="billing" class="mt-4 hidden">
 
-<h2 class="text-lg font-semibold mb-3">Billing</h2>
 
+<div class="flex justify-between items-center mb-4">
+    <div>
+        <h2 class="text-lg font-semibold">Billing</h2>
+        <p class="text-sm text-gray-400">Quick view</p>
+    </div>
+</div>
+
+<div class="flex gap-2 mb-3">
+
+    <!-- STATUS -->
+    <select class="border rounded px-3 py-1 text-sm">
+        <option value="" disabled selected hidden>Status</option>
+        <option>Paid</option>
+        <option>Unpaid</option>
+        <option>Pending</option>
+    </select>
+
+    <!-- GRADE -->
+    <select class="border rounded px-3 py-1 text-sm">
+        <option value="" disabled selected hidden>Grade</option>
+        <option>Nursery</option>
+        <option>Kinder</option>
+        <option>Grade 1</option>
+        <option>Grade 2</option>
+        <option>Grade 3</option>
+        <option>Grade 4</option>
+        <option>Grade 5</option>
+        <option>Grade 6</option>
+        <option>Grade 7</option>
+        <option>Grade 8</option>
+        <option>Grade 9</option>
+        <option>Grade 10</option>
+        <option>Grade 11</option>
+        <option>Grade 12</option>
+    </select>
+
+
+</div>
 <?php
-$billings = $conn->query("SELECT * FROM billings ORDER BY billing_date DESC LIMIT 5");
+$billings = $conn->query("
+    SELECT * FROM billings 
+    WHERE deleted_at IS NULL 
+    ORDER BY billing_date DESC 
+    LIMIT 5
+");
 while($row = $billings->fetch_assoc()):
 ?>
 
@@ -234,7 +318,16 @@ while($row = $billings->fetch_assoc()):
     <h3 class="font-semibold"><?php echo $row['billing_id']; ?></h3>
 
     <div class="mt-2">
-        <span class="bg-green-100 text-green-600 px-2 py-1 rounded text-sm">
+        <span class="px-2 py-1 rounded text-sm
+        <?php
+            if($row['status'] == 'Paid'){
+                echo 'bg-green-100 text-green-600';
+            } elseif($row['status'] == 'Pending'){
+                echo 'bg-yellow-100 text-yellow-600';
+            } else {
+                echo 'bg-red-100 text-red-600';
+            }
+        ?>">
             <?php echo $row['status']; ?>
         </span>
     </div>
@@ -256,8 +349,20 @@ while($row = $billings->fetch_assoc()):
 class="inline-block mt-3 bg-blue-600 text-white px-4 py-2 rounded text-sm">
 View All Billing
 </a>
-
 </div>
+
+<!-- CALENDAR -->
+<div class="mt-6">
+    <h2 class="text-lg font-semibold mb-2">Calendar</h2>
+
+    <div id="calendar" class="bg-white p-4 rounded-xl shadow"></div>
+</div>
+
+<script>
+const events = <?php echo json_encode($events); ?>;
+</script>
+
+<script src="script.js"></script>
 
 </body>
 </html>

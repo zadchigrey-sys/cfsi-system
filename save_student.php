@@ -3,49 +3,46 @@ include "db.php";
 
 $id = $_POST['id'] ?? null;
 
-$billing_id = $_POST['billing_id'];
-$status = $_POST['status'];
-$billing_date = $_POST['billing_date'];
-$due_date = $_POST['due_date'];
-$fee_type = $_POST['fee_type'];
-$total_amount = $_POST['total_amount'];
+$student_id = $_POST['student_id'];
+$full_name = $_POST['full_name'];
+$grade_level = $_POST['grade_level'];
+$section = $_POST['section'];
 
 if (!empty($id)) {
 
     // UPDATE
-    $stmt = $conn->prepare("UPDATE billings 
-        SET billing_id=?, status=?, billing_date=?, due_date=?, fee_type=?, total_amount=?
-        WHERE id=?");
+    $stmt = $conn->prepare("
+        UPDATE students 
+        SET student_id=?, full_name=?, grade_level=?, section=? 
+        WHERE id=?
+    ");
 
-    $stmt->bind_param("sssssdi",
-        $billing_id,
-        $status,
-        $billing_date,
-        $due_date,
-        $fee_type,
-        $total_amount,
+    $stmt->bind_param("ssssi",
+        $student_id,
+        $full_name,
+        $grade_level,
+        $section,
         $id
     );
 
 } else {
 
     // INSERT
-    $stmt = $conn->prepare("INSERT INTO billings 
-        (billing_id, status, billing_date, due_date, fee_type, total_amount)
-        VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt = $conn->prepare("
+        INSERT INTO students (student_id, full_name, grade_level, section)
+        VALUES (?, ?, ?, ?)
+    ");
 
-    $stmt->bind_param("sssssd",
-        $billing_id,
-        $status,
-        $billing_date,
-        $due_date,
-        $fee_type,
-        $total_amount
+    $stmt->bind_param("ssss",
+        $student_id,
+        $full_name,
+        $grade_level,
+        $section
     );
 }
 
 $stmt->execute();
 
-header("Location: billing.php");
+header("Location: students.php");
 exit();
 ?>
