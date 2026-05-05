@@ -8,6 +8,40 @@ if (!isset($_SESSION['user'])) {
 }
 
 $user = $_SESSION['user'];
+
+// ===== DASHBOARD STATS =====
+$totalStudents = $conn->query("
+    SELECT COUNT(*) as total 
+    FROM students 
+    WHERE deleted_at IS NULL
+")->fetch_assoc()['total'];
+
+$totalCollected = $conn->query("
+    SELECT COALESCE(SUM(amount_paid), 0) as total 
+    FROM payments 
+    WHERE deleted_at IS NULL
+")->fetch_assoc()['total'];
+
+$outstanding = $conn->query("
+    SELECT COALESCE(SUM(b.total_amount - COALESCE(p.paid,0)),0) AS total
+    FROM billings b
+    LEFT JOIN (
+        SELECT billing_id, SUM(amount_paid) as paid
+        FROM payments
+        WHERE deleted_at IS NULL
+        GROUP BY billing_id
+    ) p ON b.billing_id = p.billing_id
+    WHERE b.deleted_at IS NULL
+")->fetch_assoc()['total'];
+
+$monthlyRevenue = $conn->query("
+    SELECT COALESCE(SUM(amount_paid), 0) as total 
+    FROM payments 
+    WHERE MONTH(payment_date) = MONTH(CURDATE()) 
+    AND YEAR(payment_date) = YEAR(CURDATE()) 
+    AND deleted_at IS NULL
+")->fetch_assoc()['total'];
+
 // ===== CALENDAR EVENTS =====
 $events = [];
 
@@ -27,9 +61,6 @@ while($row = $result->fetch_assoc()) {
     ];
 }
 
-// 👇 ADD THIS HERE
-$result = $conn->query("SELECT COUNT(*) as total FROM students");
-$totalStudents = $result->fetch_assoc()['total'];
 ?>
 
 
@@ -118,30 +149,25 @@ $totalStudents = $result->fetch_assoc()['total'];
 
 </div>
 
-    <!-- SUMMARY CARDS -->
-    <div class="grid grid-cols-4 gap-4">
-
-        <div class="bg-white p-5 rounded-xl shadow">
-            <h3 class="text-gray-500">Total Students</h3>
-            <p class="text-2xl font-bold"><?php echo $totalStudents; ?></p>
-        </div>
-
-        <div class="bg-white p-5 rounded-xl shadow">
-            <h3 class="text-gray-500">Fees Collected</h3>
-            <p class="text-2xl font-bold">₱0</p>
-        </div>
-
-        <div class="bg-white p-5 rounded-xl shadow">
-            <h3 class="text-gray-500">Outstanding</h3>
-            <p class="text-2xl font-bold">₱0</p>
-        </div>
-
-        <div class="bg-white p-5 rounded-xl shadow">
-            <h3 class="text-gray-500">Monthly Revenue</h3>
-            <p class="text-2xl font-bold">₱0</p>
-        </div>
-
+<!-- SUMMARY CARDS (REPLACE THE ENTIRE GRID) -->
+<div class="grid grid-cols-4 gap-4">
+    <div class="bg-white p-5 rounded-xl shadow">
+        <h3 class="text-gray-500 text-sm">Total Students</h3>
+        <p class="text-2xl font-bold"><?php echo number_format($totalStudents); ?></p>
     </div>
+    <div class="bg-white p-5 rounded-xl shadow">
+        <h3 class="text-gray-500 text-sm">Fees Collected</h3>
+        <p class="text-2xl font-bold text-green-600">₱<?php echo number_format($totalCollected, 2); ?></p>
+    </div>
+    <div class="bg-white p-5 rounded-xl shadow">
+        <h3 class="text-gray-500 text-sm">Outstanding</h3>
+        <p class="text-2xl font-bold text-red-600">₱<?php echo number_format($outstanding, 2); ?></p>
+    </div>
+    <div class="bg-white p-5 rounded-xl shadow">
+        <h3 class="text-gray-500 text-sm">Monthly Revenue</h3>
+        <p class="text-2xl font-bold text-blue-600">₱<?php echo number_format($monthlyRevenue, 2); ?></p>
+    </div>
+</div>
 
     <!-- TABS -->
 <div class="mt-6 border-b flex gap-6 text-sm font-medium">

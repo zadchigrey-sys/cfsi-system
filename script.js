@@ -305,3 +305,32 @@ document.addEventListener("DOMContentLoaded", function () {
     calendar.render();
   }
 });
+
+// ===== PAYMENT MODAL FUNCTIONS =====
+function openPaymentModal() {
+  const modal = document.getElementById("paymentModal");
+  if (modal) {
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+    document.body.style.overflow = "hidden";
+  } else {
+    // Redirect to payments.php if modal not found
+    window.location.href = "payments.php";
+  }
+}
+
+function closePaymentModal() {
+  const modal = document.getElementById("paymentModal");
+  if (modal) {
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+    document.body.style.overflow = "";
+  }
+}
+
+// Close modals on outside click
+document.addEventListener("click", function (event) {
+  if (event.target.id === "paymentModal") {
+    closePaymentModal();
+  }
+});

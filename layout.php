@@ -1,10 +1,14 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 if (!isset($_SESSION['user'])) {
     header("Location: index.php");
     exit();
 }
-$user = $_SESSION['user'];
+
+$user = $_SESSION['user'] ?? null;
 ?>
 
 <!DOCTYPE html>
@@ -31,7 +35,7 @@ $user = $_SESSION['user'];
     <a href="recycle_bin.php" class="block py-2 hover:bg-[#2a5298] rounded px-2">Recycle Bin</a>
     <a href="logs.php" class="block py-2 hover:bg-[#2a5298] rounded px-2">Audit Logs</a>
 
-    <?php if ($user['role'] == 'administrator'): ?>
+    <?php if (!empty($user) && $user['role'] === 'administrator'): ?>
         <a href="#" class="block py-2 hover:bg-[#2a5298] rounded px-2">Users</a>
     <?php endif; ?>
 
