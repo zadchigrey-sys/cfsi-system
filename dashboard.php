@@ -42,7 +42,6 @@ $totalStudents = $result->fetch_assoc()['total'];
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
-
 <link rel="stylesheet" href="style.css">
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 </head>
@@ -172,16 +171,14 @@ $totalStudents = $result->fetch_assoc()['total'];
     <!-- RIGHT: SEARCH + BUTTON -->
     <div class="flex items-center gap-3">
 
-        <!-- SEARCH BAR -->
-       <form id="quickSearchForm" method="GET" class="relative">
-    <!-- ICON -->
+       <!-- RIGHT: SEARCH ONLY -->
+<form id="quickSearchForm" method="GET" action="dashboard.php" class="relative">
     <i class="ri-search-line absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
 
-    <!-- INPUT -->
     <input 
         type="text" 
         name="search" 
-        placeholder="Search students or bills..."
+        placeholder="Search students..."
         class="pl-12 pr-4 py-2.5 w-64 
                bg-white border border-gray-300 
                rounded-full shadow-sm
@@ -189,12 +186,6 @@ $totalStudents = $result->fetch_assoc()['total'];
                text-sm transition"
     >
 </form>
-
-        <!-- ADD BUTTON -->
-        <a href="add_student.php"
-           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">
-           + Add student
-        </a>
 
     </div>
     
@@ -231,12 +222,28 @@ $totalStudents = $result->fetch_assoc()['total'];
 </div>
 
     <?php
+    $search = $_GET['search'] ?? '';
+
+if (!empty($search)) {
+    $stmt = $conn->prepare("
+        SELECT * FROM students 
+        WHERE deleted_at IS NULL 
+        AND (full_name LIKE ? OR student_id LIKE ?)
+        ORDER BY id DESC
+        LIMIT 5
+    ");
+    $like = "%$search%";
+    $stmt->bind_param("ss", $like, $like);
+    $stmt->execute();
+    $students = $stmt->get_result();
+} else {
     $students = $conn->query("
-    SELECT * FROM students 
-    WHERE deleted_at IS NULL 
-    ORDER BY id DESC 
-    LIMIT 5
-");
+        SELECT * FROM students 
+        WHERE deleted_at IS NULL 
+        ORDER BY id DESC 
+        LIMIT 5
+    ");
+};
     while($row = $students->fetch_assoc()):
     ?>
 
@@ -259,103 +266,188 @@ $totalStudents = $result->fetch_assoc()['total'];
     </div>
 
     <?php endwhile; ?>
+    <a href="students.php"
+class="inline-block mt-3 bg-blue-600 text-white px-4 py-2 rounded text-sm">
+View All Students
+</a>
 </div>
 
 <!-- BILLING VIEW -->
 <div id="billing" class="mt-4 hidden">
 
+    <!-- HEADER -->
+    <div class="flex justify-between items-center mb-4">
 
-<div class="flex justify-between items-center mb-4">
-    <div>
-        <h2 class="text-lg font-semibold">Billing</h2>
-        <p class="text-sm text-gray-400">Quick view</p>
-    </div>
-</div>
+        <div>
+            <h2 class="text-lg font-semibold">Billing</h2>
+            <p class="text-sm text-gray-400">Quick view</p>
+        </div>
 
-<div class="flex gap-2 mb-3">
+        <!-- SEARCH BAR -->
+        <form method="GET" class="relative">
+            <i class="ri-search-line absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
+            <input 
+                type="text" 
+                name="billing_search"
+                placeholder="Search billing..."
+                class="pl-12 pr-4 py-2.5 w-64 
+                       bg-white border border-gray-300 
+                       rounded-full shadow-sm
+                       focus:outline-none focus:ring-2 focus:ring-blue-500
+                       text-sm">
+        </form>
 
-    <!-- STATUS -->
-    <select class="border rounded px-3 py-1 text-sm">
-        <option value="" disabled selected hidden>Status</option>
-        <option>Paid</option>
-        <option>Unpaid</option>
-        <option>Pending</option>
-    </select>
-
-    <!-- GRADE -->
-    <select class="border rounded px-3 py-1 text-sm">
-        <option value="" disabled selected hidden>Grade</option>
-        <option>Nursery</option>
-        <option>Kinder</option>
-        <option>Grade 1</option>
-        <option>Grade 2</option>
-        <option>Grade 3</option>
-        <option>Grade 4</option>
-        <option>Grade 5</option>
-        <option>Grade 6</option>
-        <option>Grade 7</option>
-        <option>Grade 8</option>
-        <option>Grade 9</option>
-        <option>Grade 10</option>
-        <option>Grade 11</option>
-        <option>Grade 12</option>
-    </select>
-
-
-</div>
-<?php
-$billings = $conn->query("
-    SELECT * FROM billings 
-    WHERE deleted_at IS NULL 
-    ORDER BY billing_date DESC 
-    LIMIT 5
-");
-while($row = $billings->fetch_assoc()):
-?>
-
-<div class="bg-white p-4 rounded-xl shadow mb-3">
-
-    <h3 class="font-semibold"><?php echo $row['billing_id']; ?></h3>
-
-    <div class="mt-2">
-        <span class="px-2 py-1 rounded text-sm
-        <?php
-            if($row['status'] == 'Paid'){
-                echo 'bg-green-100 text-green-600';
-            } elseif($row['status'] == 'Pending'){
-                echo 'bg-yellow-100 text-yellow-600';
-            } else {
-                echo 'bg-red-100 text-red-600';
-            }
-        ?>">
-            <?php echo $row['status']; ?>
-        </span>
     </div>
 
-    <div class="text-sm text-gray-600 mt-2">
-        Billing: <?php echo $row['billing_date']; ?><br>
-        Due: <?php echo $row['due_date']; ?>
+    <!-- FILTERS -->
+    <div class="flex gap-2 mb-3">
+
+        <select class="border rounded px-3 py-1 text-sm">
+            <option value="" disabled selected hidden>Status</option>
+            <option>Paid</option>
+            <option>Unpaid</option>
+            <option>Pending</option>
+        </select>
+
+        <select class="border rounded px-3 py-1 text-sm">
+            <option value="" disabled selected hidden>Grade</option>
+            <option>Nursery</option>
+            <option>Kinder</option>
+            <option>Grade 1</option>
+            <option>Grade 2</option>
+            <option>Grade 3</option>
+            <option>Grade 4</option>
+            <option>Grade 5</option>
+            <option>Grade 6</option>
+            <option>Grade 7</option>
+            <option>Grade 8</option>
+            <option>Grade 9</option>
+            <option>Grade 10</option>
+            <option>Grade 11</option>
+            <option>Grade 12</option>
+        </select>
+
     </div>
 
-    <div class="mt-2 font-bold text-blue-600">
-        ₱<?php echo number_format($row['total_amount'],2); ?>
+    <!-- BILLING LIST -->
+    <?php
+    $billings = $conn->query("
+        SELECT * FROM billings 
+        WHERE deleted_at IS NULL 
+        ORDER BY billing_date DESC 
+        LIMIT 5
+    ");
+    while($row = $billings->fetch_assoc()):
+    ?>
+
+    <div class="bg-white p-4 rounded-xl shadow mb-3">
+
+        <h3 class="font-semibold"><?php echo $row['billing_id']; ?></h3>
+
+        <div class="mt-2">
+            <span class="px-2 py-1 rounded text-sm
+            <?php
+                if($row['status'] == 'Paid'){
+                    echo 'bg-green-100 text-green-600';
+                } elseif($row['status'] == 'Pending'){
+                    echo 'bg-yellow-100 text-yellow-600';
+                } else {
+                    echo 'bg-red-100 text-red-600';
+                }
+            ?>">
+                <?php echo $row['status']; ?>
+            </span>
+        </div>
+
+        <div class="text-sm text-gray-600 mt-2">
+            Billing: <?php echo $row['billing_date']; ?><br>
+            Due: <?php echo $row['due_date']; ?>
+        </div>
+
+        <div class="mt-2 font-bold text-blue-600">
+            ₱<?php echo number_format($row['total_amount'],2); ?>
+        </div>
+
     </div>
 
-</div>
+    <?php endwhile; ?>
 
-<?php endwhile; ?>
+    <!-- VIEW ALL -->
+    <a href="billing.php"
+    class="inline-block mt-3 bg-blue-600 text-white px-4 py-2 rounded text-sm">
+    View All Billing
+    </a>
 
-<a href="billing.php"
-class="inline-block mt-3 bg-blue-600 text-white px-4 py-2 rounded text-sm">
-View All Billing
-</a>
-</div>
+</div> <!-- ✅ CORRECT closing -->
 
 <!-- CALENDAR -->
 <div class="mt-6">
     <h2 class="text-lg font-semibold mb-2">Calendar</h2>
 
     <div id="calendar" class="bg-white p-4 rounded-xl shadow"></div>
+</div>
+
+<!-- BILLING MODAL -->
+<div id="billingModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+
+        <button onclick="closeBillingModal()" 
+            class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-xl font-bold transition-colors">
+            &times;
+        </button>
+
+        <h2 id="billingTitle" class="text-xl font-bold mb-4 text-gray-800">Add Billing</h2>
+
+        <form id="billingForm" method="POST" action="save_billing.php" class="space-y-4">
+
+            <input type="hidden" id="billing_id_hidden" name="id">    
+
+            <input type="text" id="billing_id" name="billing_id"
+                placeholder="Billing ID"
+                class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+
+            <select id="status" name="status" class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                <option value="">Select Status</option>
+                <option value="Paid">Paid</option>
+                <option value="Unpaid">Unpaid</option>
+                <option value="Pending">Pending</option>
+            </select>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Billing Date</label>
+                <input type="date" id="billing_date" name="billing_date"
+                    class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                <input type="date" id="due_date" name="due_date"
+                    class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+            </div>
+
+            <input type="text" id="fee_type" name="fee_type"
+                placeholder="Fee Name (e.g., Tuition, Miscellaneous)"
+                class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+
+            <input type="number" id="total_amount" name="total_amount" step="0.01"
+                placeholder="0.00"
+                class="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+
+            <div class="flex justify-end gap-3 pt-2">
+                <button type="button" onclick="closeBillingModal()"
+                    class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium">
+                    Cancel
+                </button>
+
+                <button type="submit" id="billingSubmit"
+                    class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                    Save Billing
+                </button>
+            </div>
+
+        </form>
+
+    </div>
 </div>
 
 <script>

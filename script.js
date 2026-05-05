@@ -184,20 +184,57 @@ function closeModal() {
 }
 
 function closeBillingModal() {
+  console.log("Closing billing modal"); // 👈 DEBUG
   const modal = document.getElementById("billingModal");
-  modal.classList.add("hidden");
+
+  if (!modal) {
+    console.error("Billing modal NOT FOUND");
+    return;
+  }
+
+  // ✅ PROPERLY HIDE MODAL
   modal.classList.remove("flex");
+  modal.classList.add("hidden");
+
+  // ✅ RESTORE BODY SCROLL
+  document.body.style.overflow = "";
+  document.body.style.paddingRight = "";
 }
 
 function openBillingModal() {
+  console.log("Opening billing modal"); // 👈 DEBUG
+
   const modal = document.getElementById("billingModal");
+  if (!modal) {
+    console.error("Billing modal NOT FOUND");
+    return;
+  }
+
+  // ✅ SHOW MODAL PROPERLY
   modal.classList.remove("hidden");
   modal.classList.add("flex");
 
-  document.getElementById("billingForm").reset();
+  // ✅ PREVENT BODY SCROLL
+  document.body.style.overflow = "hidden";
+
+  // ✅ PREVENT HORIZONTAL SCROLLBAR
+  const scrollBarWidth =
+    window.innerWidth - document.documentElement.clientWidth;
+  document.body.style.paddingRight = scrollBarWidth + "px";
+
+  // ✅ RESET FORM
+  const form = document.getElementById("billingForm");
+  if (form) form.reset();
+
   document.getElementById("billing_id_hidden").value = "";
   document.getElementById("billingTitle").innerText = "Add Billing";
   document.getElementById("billingSubmit").innerText = "Save Billing";
+
+  // ✅ AUTO FOCUS
+  setTimeout(() => {
+    const feeInput = document.getElementById("fee_type");
+    if (feeInput) feeInput.focus();
+  }, 100);
 }
 
 function openEditBilling(id, bid, fee, status, bdate, ddate, amount) {
@@ -219,16 +256,50 @@ function openEditBilling(id, bid, fee, status, bdate, ddate, amount) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-  // ✅ Default tab
+  // ✅ DEFAULT TAB
   showTab("students");
 
-  // ✅ Calendar
+  // ✅ GET CALENDAR ELEMENT
   const calendarEl = document.getElementById("calendar");
 
   if (calendarEl) {
     const calendar = new FullCalendar.Calendar(calendarEl, {
       initialView: "dayGridMonth",
+      height: "auto",
       events: events,
+
+      // ✅ CLICK DATE → OPEN MODAL
+      dateClick: function (info) {
+        console.log("Calendar clicked:", info.dateStr); // 👈 DEBUG
+
+        openBillingModal();
+
+        // ✅ SET BILLING DATE
+        const billingDate = document.getElementById("billing_date");
+        if (billingDate) {
+          billingDate.value = info.dateStr;
+        }
+
+        // ✅ AUTO DUE DATE (+2 DAYS)
+        const dueDateInput = document.getElementById("due_date");
+        if (dueDateInput) {
+          let due = new Date(info.date);
+          due.setDate(due.getDate() + 2);
+
+          let yyyy = due.getFullYear();
+          let mm = String(due.getMonth() + 1).padStart(2, "0");
+          let dd = String(due.getDate()).padStart(2, "0");
+
+          dueDateInput.value = `${yyyy}-${mm}-${dd}`;
+        }
+
+        // ✅ OPTIONAL DEFAULT VALUES
+        const status = document.getElementById("status");
+        if (status) status.value = "Pending";
+
+        const fee = document.getElementById("fee_type");
+        if (fee) fee.focus(); // auto focus input
+      },
     });
 
     calendar.render();
