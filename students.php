@@ -66,10 +66,16 @@ class="bg-yellow-500 text-white px-2 py-1 rounded">Edit</button>
                 <a href="delete_student.php?id=<?php echo $row['id']; ?>" 
    onclick="return confirm('Are you sure you want to delete this student?')"
    class="bg-red-500 text-white px-2 py-1 rounded">Delete</a>
+   <a href="student_payments.php?student_id=<?php echo $row['student_id']; ?>" 
+   class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+   View Payments
+</a>
             </td>
         </tr>
         <?php endwhile; ?>
+
     </tbody>
+    
 </table>
 <!-- MODAL BACKDROP -->
 <div id="studentModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center">

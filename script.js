@@ -334,3 +334,34 @@ document.addEventListener("click", function (event) {
     closePaymentModal();
   }
 });
+
+function openEditPayment(
+  id,
+  payment_id,
+  student_id,
+  billing_id,
+  amount,
+  method,
+  date,
+  status,
+) {
+  const modal = document.getElementById("paymentModal");
+
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+  document.body.style.overflow = "hidden";
+
+  // Set values
+  document.getElementById("payment_id_hidden").value = id;
+  document.getElementById("payment_id").value = payment_id;
+
+  document.querySelector("[name='student_id']").value = student_id;
+  document.querySelector("[name='billing_id']").value = billing_id;
+  document.querySelector("[name='amount_paid']").value = amount;
+  document.querySelector("[name='payment_method']").value = method;
+  document.querySelector("[name='payment_date']").value = date;
+  document.querySelector("[name='status']").value = status;
+
+  // Change UI text
+  document.getElementById("paymentTitle").innerText = "Edit Payment";
+}

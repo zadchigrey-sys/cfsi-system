@@ -11,7 +11,11 @@ $user = $_SESSION['user'];
 
 // Stats
 $totalCollected = $conn->query("SELECT COALESCE(SUM(amount_paid), 0) as total FROM payments WHERE deleted_at IS NULL")->fetch_assoc()['total'] ?? 0;
-$outstanding = $conn->query("SELECT COALESCE(SUM(total_amount - COALESCE(amount_paid,0)), 0) as total FROM billings WHERE deleted_at IS NULL")->fetch_assoc()['total'] ?? 0;
+$outstanding = $conn->query("
+    SELECT COALESCE(SUM(remaining_balance), 0) as total 
+    FROM billings 
+    WHERE deleted_at IS NULL
+")->fetch_assoc()['total'] ?? 0;
 $todayPayments = $conn->query("SELECT COALESCE(SUM(amount_paid), 0) as total FROM payments WHERE DATE(payment_date) = CURDATE() AND deleted_at IS NULL")->fetch_assoc()['total'] ?? 0;
 $totalPayments = $conn->query("SELECT COUNT(*) as total FROM payments WHERE deleted_at IS NULL")->fetch_assoc()['total'] ?? 0;
 
@@ -92,9 +96,9 @@ ob_start(); // 👈 SAME AS YOUR OTHER PAGES
         <!-- Filter -->
         <select name="status" onchange="this.form.submit()" class="border border-gray-300 px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-blue-500">
             <option value="">All Status</option>
-            <option value="Completed" <?php echo ($status_filter=='Completed')?'selected':'';?>>✓ Completed</option>
-            <option value="Pending" <?php echo ($status_filter=='Pending')?'selected':'';?>>⏳ Pending</option>
-            <option value="Failed" <?php echo ($status_filter=='Failed')?'selected':'';?>>✗ Failed</option>
+            <option value="Completed" <?php echo ($status_filter=='Completed')?'selected':'';?>> Completed</option>
+            <option value="Pending" <?php echo ($status_filter=='Pending')?'selected':'';?>> Pending</option>
+            <option value="Failed" <?php echo ($status_filter=='Failed')?'selected':'';?>> Failed</option>
         </select>
         
         <!-- Add Button -->
@@ -158,10 +162,19 @@ ob_start(); // 👈 SAME AS YOUR OTHER PAGES
                     </td>
                     <td class="p-4">
                         <div class="flex gap-2">
-                            <button onclick="openEditPayment('<?php echo $row['id']; ?>')" 
-                                    class="bg-yellow-500 text-white px-3 py-1 rounded text-sm hover:bg-yellow-600">
-                                Edit
-                            </button>
+                            <button onclick="openEditPayment(
+    '<?php echo $row['id']; ?>',
+    '<?php echo $row['payment_id']; ?>',
+    '<?php echo $row['student_id']; ?>',
+    '<?php echo $row['billing_id']; ?>',
+    '<?php echo $row['amount_paid']; ?>',
+    '<?php echo $row['payment_method']; ?>',
+    '<?php echo $row['payment_date']; ?>',
+    '<?php echo $row['status']; ?>'
+)" 
+class="bg-yellow-500 text-white px-3 py-1 rounded text-sm hover:bg-yellow-600">
+Edit
+</button>
                             <a href="delete_payment.php?id=<?php echo $row['id']; ?>" 
                                onclick="return confirm('Delete this payment record?')"
                                class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">
@@ -221,19 +234,18 @@ ob_start(); // 👈 SAME AS YOUR OTHER PAGES
                    placeholder="Amount Paid" class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-green-500 text-right font-mono">
             
             <select name="payment_method" required class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500">
-                <option value="Cash">💵 Cash</option>
-                <option value="Check">📄 Check</option>
-                <option value="GCash">📱 GCash</option>
-                <option value="Bank Transfer">🏦 Bank Transfer</option>
-                <option value="Online">💳 Online (PayPal)</option>
+                <option value="Cash"> Cash</option>
+                <option value="Check"> Check</option>
+                <option value="GCash"> GCash</option>
+                <option value="Online"> PayPal</option>
             </select>
             
             <input type="date" name="payment_date" required value="<?php echo date('Y-m-d'); ?>" 
                    class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500">
             
             <select name="status" class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500">
-                <option value="Completed">✓ Completed</option>
-                <option value="Pending">⏳ Pending</option>
+                <option value="Completed"> Completed</option>
+                <option value="Pending"> Pending</option>
             </select>
             
             <div class="flex gap-3 pt-4">
@@ -252,7 +264,6 @@ ob_start(); // 👈 SAME AS YOUR OTHER PAGES
 <script>
 // Auto-generate payment ID
 document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('payment_id').value = 'PAY' + Date.now();
 });
 
 // Modal functions
@@ -260,7 +271,6 @@ function openPaymentModal() {
     document.getElementById('paymentModal').classList.remove('hidden');
     document.getElementById('paymentModal').classList.add('flex');
     document.body.style.overflow = 'hidden';
-    document.getElementById('payment_id').value = 'PAY' + Date.now();
 }
 
 function closePaymentModal() {

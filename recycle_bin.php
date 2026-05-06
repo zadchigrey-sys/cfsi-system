@@ -85,6 +85,45 @@ ob_start();
     </tbody>
 </table>
 
+<!-- ================= PAYMENTS ================= -->
+<h2 class="text-lg font-semibold mb-3">Deleted Payments</h2>
+
+<table class="w-full bg-white shadow rounded mb-6">
+    <thead class="bg-[#1a3a6b] text-white">
+        <tr>
+            <th class="p-3">Payment ID</th>
+            <th class="p-3">Amount</th>
+            <th class="p-3">Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+    <?php
+    $payments = $conn->query("SELECT * FROM payments WHERE deleted_at IS NOT NULL");
+
+    while($row = $payments->fetch_assoc()):
+    ?>
+    <tr class="border-b text-center hover:bg-gray-50">
+        <td class="p-3"><?php echo $row['payment_id']; ?></td>
+        <td class="p-3">₱<?php echo number_format($row['amount_paid'], 2); ?></td>
+
+        <td class="p-3 space-x-2">
+            <a href="restore_payment.php?id=<?php echo $row['id']; ?>"
+               class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded">
+               Restore
+            </a>
+
+            <a href="force_delete_payment.php?id=<?php echo $row['id']; ?>"
+               onclick="return confirm('Delete permanently?')"
+               class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded">
+               Permanently delete
+            </a>
+        </td>
+    </tr>
+    <?php endwhile; ?>
+    </tbody>
+</table>
+
 <?php
 $content = ob_get_clean();
 include "layout.php";

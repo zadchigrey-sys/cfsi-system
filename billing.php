@@ -130,6 +130,19 @@ class="bg-blue-600 text-white px-4 py-2 rounded">
     placeholder="Billing ID"
     class="w-full border p-2 rounded" required>
 
+            <!-- Student ID -->
+            <select name="student_id" required class="w-full border p-2 rounded">
+    <option value="">Select Student</option>
+    <?php
+    $students = $conn->query("SELECT student_id, full_name FROM students WHERE deleted_at IS NULL");
+    while($s = $students->fetch_assoc()):
+    ?>
+    <option value="<?php echo $s['student_id']; ?>">
+        <?php echo $s['full_name']; ?>
+    </option>
+    <?php endwhile; ?>
+</select>
+
             <!-- Status -->
 <select id="status" name="status" class="w-full border p-2 rounded" required>
     <option value="">Select Status</option>
