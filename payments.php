@@ -207,7 +207,7 @@ Edit
         <h2 id="paymentTitle" class="text-xl font-bold mb-6 text-gray-800">Record Payment</h2>
         
         <form action="save_payment.php" method="POST" class="space-y-4" id="paymentForm">
->
+
             <input type="hidden" id="payment_id_hidden" name="id">
             
             <input type="text" id="payment_id" name="payment_id" placeholder="Payment ID (auto)" 
