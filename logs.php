@@ -6,9 +6,24 @@ $result = $conn->query("SELECT * FROM audit_logs ORDER BY created_at DESC");
 ob_start();
 ?>
 
-<h1 class="text-2xl font-bold mb-4">Audit Logs</h1>
+<div class="flex items-center justify-between mb-4">
+    <h1 class="text-2xl font-bold">Audit Logs</h1>
 
-<table class="w-full bg-white shadow rounded">
+    <?php if(isset($_GET['cleared'])): ?>
+<div class="mb-4 bg-green-100 text-green-700 px-4 py-3 rounded">
+    Audit logs cleared successfully.
+</div>
+<?php endif; ?>
+
+    <!-- CLEAR LOGS BUTTON -->
+    <a href="clear_logs.php"
+       onclick="return confirm('Are you sure you want to clear all audit logs?')"
+       class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow">
+        Clear History
+    </a>
+</div>
+
+<table class="w-full bg-white shadow rounded overflow-hidden">
     <thead class="bg-[#1a3a6b] text-white">
         <tr>
             <th class="p-3">Action</th>
@@ -22,10 +37,22 @@ ob_start();
     <tbody>
     <?php while($row = $result->fetch_assoc()): ?>
     <tr class="border-b text-center hover:bg-gray-50">
-        <td class="p-3 font-semibold"><?php echo $row['action']; ?></td>
-        <td class="p-3"><?php echo $row['table_name']; ?></td>
-        <td class="p-3"><?php echo $row['record_id']; ?></td>
-        <td class="p-3"><?php echo $row['user_name']; ?></td>
+        <td class="p-3 font-semibold">
+            <?php echo htmlspecialchars($row['action']); ?>
+        </td>
+
+        <td class="p-3">
+            <?php echo htmlspecialchars($row['table_name']); ?>
+        </td>
+
+        <td class="p-3">
+            <?php echo htmlspecialchars($row['record_id']); ?>
+        </td>
+
+        <td class="p-3">
+            <?php echo htmlspecialchars($row['user_name']); ?>
+        </td>
+
         <td class="p-3 text-sm text-gray-500">
             <?php echo $row['created_at']; ?>
         </td>
