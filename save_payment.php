@@ -1,9 +1,12 @@
 <?php
+session_start();
 include "db.php";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    $payment_id = $_POST['payment_id'];
+    // GET FORM DATA
+    $id = $_POST['id'] ?? '';
+
     $student_id = $_POST['student_id'];
     $billing_id = $_POST['billing_id'];
     $amount_paid = $_POST['amount_paid'];
@@ -11,39 +14,129 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $payment_date = $_POST['payment_date'];
     $status = $_POST['status'];
 
-    $stmt = $conn->prepare("
-
-    if (!$id) {
-    $payment_id = "PAY" . time();
-}
-    if (!$id) {
-    // Check duplicate
-    $check = $conn->prepare("SELECT id FROM payments WHERE payment_id = ?");
-    $check->bind_param("s", $payment_id);
-    $check->execute();
-    
-    if ($check->get_result()->num_rows > 0) {
-        die("Duplicate Payment ID detected!");
-    }
-}
-        INSERT INTO payments 
-        (payment_id, student_id, billing_id, amount_paid, payment_method, payment_date, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    ");
-
-    $stmt->bind_param("sssisss", 
-        $payment_id, 
-        $student_id, 
-        $billing_id, 
-        $amount_paid, 
-        $payment_method, 
-        $payment_date, 
-        $status
-    );
-
-    if ($stmt->execute()) {
-        header("Location: payments.php?success=1");
+    // =========================
+    // AUTO GENERATE PAYMENT ID
+    // =========================
+    if (empty($id)) {
+        $payment_id = uniqid("PAY");
     } else {
-        echo "Error: " . $stmt->error;
+        $payment_id = $_POST['payment_id'];
+    }
+
+    // =========================
+    // UPDATE PAYMENT
+    // =========================
+    if (!empty($id)) {
+
+        $stmt = $conn->prepare("
+            UPDATE payments 
+            SET 
+                student_id = ?,
+                billing_id = ?,
+                amount_paid = ?,
+                payment_method = ?,
+                payment_date = ?,
+                status = ?
+            WHERE id = ?
+        ");
+
+        $stmt->bind_param(
+            "ssdsssi",
+            $student_id,
+            $billing_id,
+            $amount_paid,
+            $payment_method,
+            $payment_date,
+            $status,
+            $id
+        );
+
+    } else {
+
+        // =========================
+        // INSERT NEW PAYMENT
+        // =========================
+        $stmt = $conn->prepare("
+            INSERT INTO payments
+            (
+                payment_id,
+                student_id,
+                billing_id,
+                amount_paid,
+                payment_method,
+                payment_date,
+                status
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ");
+
+        $stmt->bind_param(
+            "sssdsss",
+            $payment_id,
+            $student_id,
+            $billing_id,
+            $amount_paid,
+            $payment_method,
+            $payment_date,
+            $status
+        );
+    }
+
+    // EXECUTE
+    if ($stmt->execute()) {
+
+        // =========================
+        // UPDATE BILLING BALANCE
+        // =========================
+
+        $getPaid = $conn->prepare("
+            SELECT COALESCE(SUM(amount_paid),0) AS total_paid
+            FROM payments
+            WHERE billing_id = ? AND deleted_at IS NULL
+        ");
+
+        $getPaid->bind_param("s", $billing_id);
+        $getPaid->execute();
+
+        $total_paid = $getPaid->get_result()->fetch_assoc()['total_paid'];
+
+        $getBilling = $conn->prepare("
+            SELECT total_amount
+            FROM billings
+            WHERE billing_id = ?
+        ");
+
+        $getBilling->bind_param("s", $billing_id);
+        $getBilling->execute();
+
+        $total_amount = $getBilling->get_result()->fetch_assoc()['total_amount'];
+
+        $remaining_balance = $total_amount - $total_paid;
+
+        $updateBilling = $conn->prepare("
+            UPDATE billings
+            SET
+                amount_paid = ?,
+                remaining_balance = ?
+            WHERE billing_id = ?
+        ");
+
+        $updateBilling->bind_param(
+            "dds",
+            $total_paid,
+            $remaining_balance,
+            $billing_id
+        );
+
+        $updateBilling->execute();
+
+        header("Location: payments.php?success=1");
+        exit();
+
+    } else {
+
+        echo "Database Error: " . $stmt->error;
+
     }
 }
+?>

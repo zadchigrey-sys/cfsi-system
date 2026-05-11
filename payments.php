@@ -102,7 +102,7 @@ ob_start(); // 👈 SAME AS YOUR OTHER PAGES
         </select>
         
         <!-- Add Button -->
-        <button onclick="openPaymentModal()" class="bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 font-medium shadow transition-all">
+        <button type="button" onclick="openPaymentModal()" class="bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 font-medium shadow transition-all">
             + Record Payment
         </button>
     </div>
@@ -162,7 +162,7 @@ ob_start(); // 👈 SAME AS YOUR OTHER PAGES
                     </td>
                     <td class="p-4">
                         <div class="flex gap-2">
-                            <button onclick="openEditPayment(
+                            <button type="button"  onclick="openEditPayment(
     '<?php echo $row['id']; ?>',
     '<?php echo $row['payment_id']; ?>',
     '<?php echo $row['student_id']; ?>',
@@ -192,7 +192,7 @@ Edit
         <i class="ri-money-dollar-circle-line text-6xl text-gray-300 mb-4 block mx-auto"></i>
         <h3 class="text-xl font-semibold text-gray-500 mb-2">No Payments Yet</h3>
         <p class="text-gray-400 mb-6">Record your first payment to get started.</p>
-        <button onclick="openPaymentModal()" class="bg-green-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-green-700">
+        <button  type="button" onclick="openPaymentModal()" class="bg-green-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-green-700">
             Record First Payment
         </button>
     </div>
@@ -202,11 +202,12 @@ Edit
 <!-- PAYMENT MODAL -->
 <div id="paymentModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-md rounded-xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
-        <button onclick="closePaymentModal()" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-xl">&times;</button>
+        <button type="button" onclick="closePaymentModal()" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-xl">&times;</button>
         
         <h2 id="paymentTitle" class="text-xl font-bold mb-6 text-gray-800">Record Payment</h2>
         
-        <form action="save_payment.php" method="POST" class="space-y-4">
+        <form action="save_payment.php" method="POST" class="space-y-4" id="paymentForm">
+>
             <input type="hidden" id="payment_id_hidden" name="id">
             
             <input type="text" id="payment_id" name="payment_id" placeholder="Payment ID (auto)" 
@@ -230,7 +231,7 @@ Edit
                 <?php endwhile; ?>
             </select>
             
-            <input type="number" name="amount_paid" step="0.01" min="0" required 
+            <input type="number" id="amount_paid" name="amount_paid" step="0.01" min="0" required 
                    placeholder="Amount Paid" class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-green-500 text-right font-mono">
             
             <select name="payment_method" required class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500">
@@ -253,37 +254,17 @@ Edit
                         class="flex-1 px-6 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium">
                     Cancel
                 </button>
-                <button type="submit" class="flex-1 px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium shadow">
-                    Save Payment
+                <button 
+                type="submit"
+                id="paymentSubmitBtn"
+                class="flex-1 px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium shadow">
+                Confirm Payment
                 </button>
             </div>
         </form>
     </div>
 </div>
 
-<script>
-// Auto-generate payment ID
-document.addEventListener('DOMContentLoaded', function() {
-});
-
-// Modal functions
-function openPaymentModal() {
-    document.getElementById('paymentModal').classList.remove('hidden');
-    document.getElementById('paymentModal').classList.add('flex');
-    document.body.style.overflow = 'hidden';
-}
-
-function closePaymentModal() {
-    document.getElementById('paymentModal').classList.add('hidden');
-    document.getElementById('paymentModal').classList.remove('flex');
-    document.body.style.overflow = '';
-}
-
-// Close on outside click
-document.getElementById('paymentModal')?.addEventListener('click', function(e) {
-    if (e.target === this) closePaymentModal();
-});
-</script>
 
 <?php
 $content = ob_get_clean();

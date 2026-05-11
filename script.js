@@ -309,23 +309,47 @@ document.addEventListener("DOMContentLoaded", function () {
 // ===== PAYMENT MODAL FUNCTIONS =====
 function openPaymentModal() {
   const modal = document.getElementById("paymentModal");
-  if (modal) {
-    modal.classList.remove("hidden");
-    modal.classList.add("flex");
-    document.body.style.overflow = "hidden";
-  } else {
-    // Redirect to payments.php if modal not found
-    window.location.href = "payments.php";
-  }
+
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+
+  document.body.style.overflow = "hidden";
+
+  // RESET FORM
+  const form = document.querySelector("#paymentModal form");
+  form.reset();
+
+  // CLEAR HIDDEN ID
+  document.getElementById("payment_id_hidden").value = "";
+
+  // GENERATE NEW PAYMENT ID
+  document.getElementById("payment_id").value = "PAY" + Date.now();
+
+  // RESET TITLE
+  document.getElementById("paymentTitle").innerText = "Record Payment";
+
+  // RESET BUTTON
+  document.getElementById("paymentSubmitBtn").innerText = "Add Payment";
+
+  // RESET DATE
+  document.querySelector("[name='payment_date']").value = new Date()
+    .toISOString()
+    .split("T")[0];
+
+  // RESET STATUS
+  document.querySelector("[name='status']").value = "Completed";
 }
 
 function closePaymentModal() {
   const modal = document.getElementById("paymentModal");
-  if (modal) {
-    modal.classList.add("hidden");
-    modal.classList.remove("flex");
-    document.body.style.overflow = "";
-  }
+
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+
+  document.body.style.overflow = "";
+
+  // OPTIONAL RESET WHEN CLOSED
+  document.querySelector("#paymentModal form").reset();
 }
 
 // Close modals on outside click
@@ -349,19 +373,45 @@ function openEditPayment(
 
   modal.classList.remove("hidden");
   modal.classList.add("flex");
+
   document.body.style.overflow = "hidden";
 
-  // Set values
+  // SET VALUES
   document.getElementById("payment_id_hidden").value = id;
+
   document.getElementById("payment_id").value = payment_id;
 
   document.querySelector("[name='student_id']").value = student_id;
+
   document.querySelector("[name='billing_id']").value = billing_id;
+
   document.querySelector("[name='amount_paid']").value = amount;
+
   document.querySelector("[name='payment_method']").value = method;
+
   document.querySelector("[name='payment_date']").value = date;
+
   document.querySelector("[name='status']").value = status;
 
-  // Change UI text
+  // CHANGE TITLE
   document.getElementById("paymentTitle").innerText = "Edit Payment";
+
+  // CHANGE BUTTON
+  document.getElementById("paymentSubmitBtn").innerText = "Update Payment";
 }
+
+// PREVENT DOUBLE SUBMIT
+document.addEventListener("DOMContentLoaded", function () {
+  const paymentForm = document.getElementById("paymentForm");
+
+  if (paymentForm) {
+    paymentForm.addEventListener("submit", function () {
+      const submitBtn = document.getElementById("paymentSubmitBtn");
+
+      // DISABLE BUTTON AFTER CLICK
+      submitBtn.disabled = true;
+
+      submitBtn.innerText = "Processing...";
+    });
+  }
+});
