@@ -98,6 +98,7 @@ ob_start(); // 👈 SAME AS YOUR OTHER PAGES
             <option value="">All Status</option>
             <option value="Completed" <?php echo ($status_filter=='Completed')?'selected':'';?>> Completed</option>
             <option value="Pending" <?php echo ($status_filter=='Pending')?'selected':'';?>> Pending</option>
+            <option value="Partial" <?php echo ($status_filter=='Partial')?'selected':'';?>> Partial</option>
             <option value="Failed" <?php echo ($status_filter=='Failed')?'selected':'';?>> Failed</option>
         </select>
         

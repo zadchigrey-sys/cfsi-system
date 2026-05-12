@@ -5,7 +5,7 @@ include "db.php";
 $search = $_GET['search'] ?? '';
 
 if (!empty($search)) {
-    $stmt = $conn->prepare("SELECT * FROM billings WHERE billing_id LIKE ?");
+    $stmt = $conn->prepare("SELECT * FROM billings WHERE billing_id LIKE ? AND deleted_at IS NULL");
     $like = "%$search%";
     $stmt->bind_param("s", $like);
     $stmt->execute();
@@ -24,11 +24,11 @@ ob_start();
     <form method="GET" class="relative">
         <i class="ri-search-line absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
         <input 
-            type="text" 
-            name="search"
-            placeholder="Search billing..."
-            class="pl-12 pr-4 py-2.5 w-64 bg-white border rounded-full shadow-sm"
-        >
+    type="text" 
+    name="search"
+    value="<?php echo htmlspecialchars($search); ?>"
+    placeholder="Search billing..."
+    class="pl-12 pr-4 py-2.5 w-64 bg-white border rounded-full shadow-sm">
     </form>
     <button onclick="openBillingModal()" 
 class="bg-blue-600 text-white px-4 py-2 rounded">
@@ -76,7 +76,7 @@ class="bg-blue-600 text-white px-4 py-2 rounded">
             } else {
                 echo 'bg-red-100 text-red-600';
             }
-        ?>">
+        ?>"> 
             <?php echo $row['status']; ?>
         </span>
     </td>
@@ -89,6 +89,7 @@ class="bg-blue-600 text-white px-4 py-2 rounded">
         <button onclick="openEditBilling(
             '<?php echo $row['id']; ?>',
             '<?php echo $row['billing_id']; ?>',
+            '<?php echo $row['student_id']; ?>',
             '<?php echo $row['fee_type']; ?>',
             '<?php echo $row['status']; ?>',
             '<?php echo $row['billing_date']; ?>',
@@ -127,8 +128,8 @@ class="bg-blue-600 text-white px-4 py-2 rounded">
             <!-- Billing ID -->
     <input type="hidden" id="billing_id_hidden" name="id">    
     <input type="text" id="billing_id" name="billing_id"
-    placeholder="Billing ID"
-    class="w-full border p-2 rounded" required>
+            placeholder="Billing ID Auto Generated"
+            class="w-full border p-2 rounded bg-gray-100" readonly>
 
             <!-- Student ID -->
             <select name="student_id" required class="w-full border p-2 rounded">

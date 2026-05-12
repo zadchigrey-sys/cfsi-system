@@ -227,6 +227,7 @@ function openBillingModal() {
   if (form) form.reset();
 
   document.getElementById("billing_id_hidden").value = "";
+  document.getElementById("billing_id").value = "BILL" + Date.now();
   document.getElementById("billingTitle").innerText = "Add Billing";
   document.getElementById("billingSubmit").innerText = "Save Billing";
 
@@ -237,12 +238,22 @@ function openBillingModal() {
   }, 100);
 }
 
-function openEditBilling(id, bid, fee, status, bdate, ddate, amount) {
+function openEditBilling(
+  id,
+  bid,
+  student_id,
+  fee,
+  status,
+  bdate,
+  ddate,
+  amount,
+) {
   const modal = document.getElementById("billingModal");
 
   modal.classList.remove("hidden");
   modal.classList.add("flex");
 
+  document.querySelector("[name='student_id']").value = student_id;
   document.getElementById("billing_id_hidden").value = id;
   document.getElementById("billing_id").value = bid;
   document.getElementById("fee_type").value = fee;
