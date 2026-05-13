@@ -426,3 +426,41 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 });
+
+// AUTO LOAD BILLINGS
+document.addEventListener("DOMContentLoaded", function () {
+  const studentSelect = document.getElementById("payment_student");
+  const billingSelect = document.getElementById("payment_billing");
+  const amountInput = document.getElementById("payment_amount");
+
+  if (!studentSelect) return;
+
+  studentSelect.addEventListener("change", function () {
+    const studentId = this.value;
+
+    fetch("get_student_billings.php?student_id=" + studentId)
+      .then((response) => response.json())
+      .then((data) => {
+        billingSelect.innerHTML = '<option value="">Select Billing</option>';
+
+        data.forEach((billing) => {
+          const option = document.createElement("option");
+
+          option.value = billing.billing_id;
+
+          option.text = billing.billing_id + " - " + billing.fee_type;
+
+          option.dataset.amount = billing.remaining_balance;
+
+          billingSelect.appendChild(option);
+        });
+      });
+  });
+
+  // AUTO AMOUNT
+  billingSelect.addEventListener("change", function () {
+    const selected = this.options[this.selectedIndex];
+
+    amountInput.value = selected.dataset.amount || "";
+  });
+});

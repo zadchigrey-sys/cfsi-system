@@ -10,14 +10,10 @@ if (!isset($_SESSION['user'])) {
 $user = $_SESSION['user'];
 
 // Stats
-$totalCollected = $conn->query("SELECT COALESCE(SUM(amount_paid), 0) as total FROM payments WHERE deleted_at IS NULL")->fetch_assoc()['total'] ?? 0;
-$outstanding = $conn->query("
-    SELECT COALESCE(SUM(remaining_balance), 0) as total 
-    FROM billings 
-    WHERE deleted_at IS NULL
-")->fetch_assoc()['total'] ?? 0;
-$todayPayments = $conn->query("SELECT COALESCE(SUM(amount_paid), 0) as total FROM payments WHERE DATE(payment_date) = CURDATE() AND deleted_at IS NULL")->fetch_assoc()['total'] ?? 0;
-$totalPayments = $conn->query("SELECT COUNT(*) as total FROM payments WHERE deleted_at IS NULL")->fetch_assoc()['total'] ?? 0;
+
+$totalCollected = $conn->query("SELECT COALESCE(SUM(amount_paid), 0) as total FROM payments WHERE deleted_at IS NULL AND status = 'Completed'")->fetch_assoc()['total'] ?? 0;
+$todayPayments = $conn->query("SELECT COALESCE(SUM(amount_paid), 0) as total FROM payments WHERE DATE(payment_date) = CURDATE()AND deleted_at IS NULL AND status = 'Completed'")->fetch_assoc()['total'] ?? 0;
+$totalPayments = $conn->query("SELECT COUNT(*) AS total FROM payments WHERE deleted_at IS NULL AND status = 'Completed'")->fetch_assoc()['total'] ?? 0;
 
 $search = $_GET['search'] ?? '';
 $status_filter = $_GET['status'] ?? '';
@@ -94,13 +90,35 @@ ob_start(); // 👈 SAME AS YOUR OTHER PAGES
         </form>
         
         <!-- Filter -->
-        <select name="status" onchange="this.form.submit()" class="border border-gray-300 px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-blue-500">
-            <option value="">All Status</option>
-            <option value="Completed" <?php echo ($status_filter=='Completed')?'selected':'';?>> Completed</option>
-            <option value="Pending" <?php echo ($status_filter=='Pending')?'selected':'';?>> Pending</option>
-            <option value="Partial" <?php echo ($status_filter=='Partial')?'selected':'';?>> Partial</option>
-            <option value="Failed" <?php echo ($status_filter=='Failed')?'selected':'';?>> Failed</option>
-        </select>
+        <form method="GET" class="flex gap-3 items-center">
+
+    <input type="hidden" name="search" value="<?php echo htmlspecialchars($search); ?>">
+
+    <select name="status"
+        onchange="this.form.submit()"
+        class="border border-gray-300 px-4 py-2.5 rounded-lg focus:ring-2 focus:ring-blue-500">
+
+        <option value="">All Status</option>
+
+        <option value="Completed" <?php echo ($status_filter=='Completed')?'selected':''; ?>>
+            Completed
+        </option>
+
+        <option value="Pending" <?php echo ($status_filter=='Pending')?'selected':''; ?>>
+            Pending
+        </option>
+
+        <option value="Partial" <?php echo ($status_filter=='Partial')?'selected':''; ?>>
+            Partial
+        </option>
+
+        <option value="Failed" <?php echo ($status_filter=='Failed')?'selected':''; ?>>
+            Failed
+        </option>
+
+    </select>
+
+</form>
         
         <!-- Add Button -->
         <button type="button" onclick="openPaymentModal()" class="bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 font-medium shadow transition-all">
@@ -214,7 +232,7 @@ Edit
             <input type="text" id="payment_id" name="payment_id" placeholder="Payment ID (auto)" 
                    class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500" readonly>
             
-            <select name="student_id" required class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500">
+            <select id="payment_student" name="student_id" required class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500">
                 <option value="">Select Student</option>
                 <?php
                 $students = $conn->query("SELECT student_id, full_name FROM students WHERE deleted_at IS NULL ORDER BY full_name");
@@ -223,7 +241,7 @@ Edit
                 <?php endwhile; ?>
             </select>
             
-            <select name="billing_id" required class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500">
+            <select id="payment_billing" name="billing_id" required class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500">
                 <option value="">Select Billing</option>
                 <?php
                 $billings = $conn->query("SELECT billing_id, fee_type FROM billings WHERE deleted_at IS NULL ORDER BY billing_date DESC");
@@ -232,7 +250,7 @@ Edit
                 <?php endwhile; ?>
             </select>
             
-            <input type="number" id="amount_paid" name="amount_paid" step="0.01" min="0" required 
+            <input type="number" id="payment_amount" name="amount_paid" step="0.01" min="0" required 
                    placeholder="Amount Paid" class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-green-500 text-right font-mono">
             
             <select name="payment_method" required class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500">
@@ -266,6 +284,69 @@ Edit
     </div>
 </div>
 
+<script>
+
+function openPaymentModal() {
+
+    document.getElementById('paymentModal').classList.remove('hidden');
+
+    document.getElementById('paymentForm').reset();
+
+    document.getElementById('paymentTitle').innerText = "Record Payment";
+
+    document.getElementById('paymentSubmitBtn').innerText = "Confirm Payment";
+
+    document.getElementById('payment_id_hidden').value = '';
+
+}
+
+function closePaymentModal() {
+
+    document.getElementById('paymentModal').classList.add('hidden');
+
+}
+
+function openEditPayment(
+    id,
+    payment_id,
+    student_id,
+    billing_id,
+    payment_amount,
+    payment_method,
+    payment_date,
+    status
+) {
+
+    document.getElementById('paymentModal').classList.remove('hidden');
+
+    document.getElementById('paymentTitle').innerText = "Edit Payment";
+
+    document.getElementById('paymentSubmitBtn').innerText = "Update Payment";
+
+    document.getElementById('payment_id_hidden').value = id;
+
+    document.getElementById('payment_id').value = payment_id;
+
+    document.getElementById('payment_amount').value = amount_paid;
+
+    // Student select
+    document.querySelector('select[name="student_id"]').value = student_id;
+
+    // Billing select
+    document.querySelector('select[name="billing_id"]').value = billing_id;
+
+    // Payment method
+    document.querySelector('select[name="payment_method"]').value = payment_method;
+
+    // Payment date
+    document.querySelector('input[name="payment_date"]').value = payment_date;
+
+    // Status
+    document.querySelector('select[name="status"]').value = status;
+
+}
+
+</script>
 
 <?php
 $content = ob_get_clean();

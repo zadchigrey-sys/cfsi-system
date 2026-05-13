@@ -27,9 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // =========================
     if (!empty($id)) {
 
-        $stmt = $conn->prepare("
-            UPDATE billings
-            SET
+        $stmt = $conn->prepare("UPDATE billings SET
                 student_id = ?,
                 fee_type = ?,
                 status = ?,
@@ -54,11 +52,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     } else {
 
+            if ($status == "Paid") {
+            $amount_paid = $total_amount;
+         $remaining_balance = 0;
+        } else {
+         $amount_paid = 0;
+         $remaining_balance = $total_amount;
+        
+         }
         // =========================
         // INSERT NEW BILLING
         // =========================
-        $stmt = $conn->prepare("
-            INSERT INTO billings
+        $stmt = $conn->prepare("INSERT INTO billings
             (
                 billing_id,
                 student_id,
@@ -70,11 +75,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 amount_paid,
                 remaining_balance
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
 
         $stmt->bind_param(
-            "ssssssdd",
+            "ssssssddd",
             $billing_id,
             $student_id,
             $fee_type,
@@ -82,7 +87,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $billing_date,
             $due_date,
             $total_amount,
-            $total_amount
+            $amount_paid,
+            $remaining_balance
         );
 
         $action = "CREATE";
@@ -98,8 +104,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             ? $id
             : $conn->insert_id;
 
-        $log = $conn->prepare("
-            INSERT INTO audit_logs
+        $log = $conn->prepare("INSERT INTO audit_logs
             (action, table_name, record_id, user_name)
             VALUES (?, 'billings', ?, ?)
         ");

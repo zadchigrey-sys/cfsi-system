@@ -28,8 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // =========================
     if (!empty($id)) {
 
-        $stmt = $conn->prepare("
-            UPDATE payments 
+        $stmt = $conn->prepare("UPDATE payments 
             SET 
                 student_id = ?,
                 billing_id = ?,
@@ -56,8 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // =========================
         // INSERT NEW PAYMENT
         // =========================
-        $stmt = $conn->prepare("
-            INSERT INTO payments
+        $stmt = $conn->prepare("INSERT INTO payments
             (
                 payment_id,
                 student_id,
@@ -89,8 +87,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // UPDATE BILLING BALANCE
         // =========================
 
-        $getPaid = $conn->prepare("
-            SELECT COALESCE(SUM(amount_paid),0) AS total_paid
+        $getPaid = $conn->prepare("SELECT COALESCE(SUM(amount_paid),0) AS total_paid
             FROM payments
             WHERE billing_id = ? AND deleted_at IS NULL
         ");
@@ -100,8 +97,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $total_paid = $getPaid->get_result()->fetch_assoc()['total_paid'];
 
-        $getBilling = $conn->prepare("
-            SELECT total_amount
+        $getBilling = $conn->prepare("SELECT total_amount
             FROM billings
             WHERE billing_id = ?
         ");
@@ -113,18 +109,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $remaining_balance = $total_amount - $total_paid;
 
-        $updateBilling = $conn->prepare("
-            UPDATE billings
-            SET
-                amount_paid = ?,
-                remaining_balance = ?
-            WHERE billing_id = ?
-        ");
+        // =========================
+// BILLING STATUS LOGIC
+// =========================
+
+if ($status == "Pending") {
+
+    // Pending payments should remain outstanding
+    $billing_status = "Pending";
+
+} else {
+
+    // Completed payment logic
+    if ($total_paid >= $total_amount) {
+        $billing_status = "Paid";
+    } else {
+        $billing_status = "Pending";
+    }
+} 
+
+        $updateBilling = $conn->prepare("UPDATE billings SET amount_paid = ?,remaining_balance = ?, status = ? WHERE billing_id = ?");
 
         $updateBilling->bind_param(
-            "dds",
+            "ddss",
             $total_paid,
             $remaining_balance,
+            $billing_status,
             $billing_id
         );
 

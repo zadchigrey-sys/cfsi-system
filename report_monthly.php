@@ -10,14 +10,14 @@ if (!isset($_SESSION['user'])) {
 // =========================
 // MONTHLY COLLECTION QUERY
 // =========================
-$sql = "
-SELECT
+$sql = "SELECT
     DATE_FORMAT(payment_date, '%M %Y') AS month_name,
     DATE_FORMAT(payment_date, '%Y-%m') AS month_sort,
     COUNT(*) AS total_transactions,
-    SUM(amount_paid) AS total_collections
+    COALESCE(SUM(amount_paid), 0) AS total_collections
 FROM payments
 WHERE deleted_at IS NULL
+AND status = 'Completed'
 GROUP BY month_sort
 ORDER BY month_sort DESC
 ";
@@ -34,8 +34,22 @@ ob_start();
     Monthly Collection Report
 </h1>
 
-<div class="bg-white shadow rounded-lg overflow-hidden">
 
+    <div class="mb-4">
+    <button onclick="window.print()"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+
+        Print Report
+    </button>
+</div>
+
+    <input type="text"
+       id="searchInput"
+       placeholder="Search student..."
+       class="border p-2 rounded w-full mb-4">
+
+<div class="bg-white shadow rounded-lg overflow-hidden">
+     <div class="overflow-x-auto">
     <table class="w-full">
 
         <thead class="bg-[#1a3a6b] text-white">
@@ -95,7 +109,7 @@ ob_start();
     </table>
 
 </div>
-
+        </div>
 <?php
 $content = ob_get_clean();
 include "layout.php";

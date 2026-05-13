@@ -10,36 +10,19 @@ if (!isset($_SESSION['user'])) {
 $user = $_SESSION['user'];
 
 // ===== DASHBOARD STATS =====
-$totalStudents = $conn->query("
-    SELECT COUNT(*) as total 
+$totalStudents = $conn->query("SELECT COUNT(*) as total 
     FROM students 
     WHERE deleted_at IS NULL
 ")->fetch_assoc()['total'];
 
-$totalCollected = $conn->query("
-    SELECT COALESCE(SUM(amount_paid), 0) as total 
-    FROM payments 
-    WHERE deleted_at IS NULL
-")->fetch_assoc()['total'];
+$totalCollected = $conn->query("SELECT COALESCE(SUM(amount_paid), 0) as total FROM payments WHERE deleted_at IS NULL AND status = 'Completed'")->fetch_assoc()['total'];
 
-$outstanding = $conn->query("
-    SELECT COALESCE(SUM(b.total_amount - COALESCE(p.paid,0)),0) AS total
-    FROM billings b
-    LEFT JOIN (
-        SELECT billing_id, SUM(amount_paid) as paid
-        FROM payments
-        WHERE deleted_at IS NULL
-        GROUP BY billing_id
-    ) p ON b.billing_id = p.billing_id
-    WHERE b.deleted_at IS NULL
-")->fetch_assoc()['total'];
+$outstanding = $conn->query("SELECT COALESCE(SUM(
+    CASE  WHEN remaining_balance > 0 THEN remaining_balance
+        ELSE 0 END),0) AS total FROM billings WHERE deleted_at IS NULL AND status != 'Paid'")->fetch_assoc()['total'];
 
-$monthlyRevenue = $conn->query("
-    SELECT COALESCE(SUM(amount_paid), 0) as total 
-    FROM payments 
-    WHERE MONTH(payment_date) = MONTH(CURDATE()) 
-    AND YEAR(payment_date) = YEAR(CURDATE()) 
-    AND deleted_at IS NULL
+$monthlyRevenue = $conn->query("SELECT COALESCE(SUM(amount_paid), 0) as total FROM payments WHERE status = 'Completed'
+AND MONTH(payment_date) = MONTH(CURDATE()) AND YEAR(payment_date) = YEAR(CURDATE()) AND deleted_at IS NULL
 ")->fetch_assoc()['total'];
 
 // ===== CALENDAR EVENTS =====
@@ -251,8 +234,7 @@ while($row = $result->fetch_assoc()) {
     $search = $_GET['search'] ?? '';
 
 if (!empty($search)) {
-    $stmt = $conn->prepare("
-        SELECT * FROM students 
+    $stmt = $conn->prepare("SELECT * FROM students 
         WHERE deleted_at IS NULL 
         AND (full_name LIKE ? OR student_id LIKE ?)
         ORDER BY id DESC
@@ -263,8 +245,7 @@ if (!empty($search)) {
     $stmt->execute();
     $students = $stmt->get_result();
 } else {
-    $students = $conn->query("
-        SELECT * FROM students 
+    $students = $conn->query("SELECT * FROM students 
         WHERE deleted_at IS NULL 
         ORDER BY id DESC 
         LIMIT 5
@@ -357,10 +338,9 @@ View All Students
 
     <!-- BILLING LIST -->
     <?php
-    $billings = $conn->query("
-        SELECT * FROM billings 
+    $billings = $conn->query("SELECT * FROM billings 
         WHERE deleted_at IS NULL 
-        ORDER BY billing_date DESC 
+        ORDER BY created_at DESC
         LIMIT 5
     ");
     while($row = $billings->fetch_assoc()):

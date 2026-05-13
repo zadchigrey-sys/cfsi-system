@@ -12,46 +12,69 @@ if (isset($_GET['id'])) {
     $id = $_GET['id'];
     $user = $_SESSION['user']['name'];
 
-    // ✅ SOFT DELETE
-    $stmt = $conn->prepare("UPDATE payments SET deleted_at = NOW() WHERE id = ?");
-    $stmt->bind_param("i", $id);
-    $stmt->execute();
-
-    // ==============================
-// 🔥 RECOMPUTE BILLING
-// ==============================
-
-$stmt = $conn->prepare("
-    SELECT COALESCE(SUM(amount_paid),0) as total_paid 
-    FROM payments 
-    WHERE billing_id = ? AND deleted_at IS NULL
+    // GET BILLING ID
+$getBilling = $conn->prepare("SELECT billing_id FROM payments WHERE id = ?
 ");
-$stmt->bind_param("s", $billing_id);
-$stmt->execute();
-$total_paid = $stmt->get_result()->fetch_assoc()['total_paid'];
+$getBilling->bind_param("i", $id);
+$getBilling->execute();
 
-$stmt = $conn->prepare("SELECT total_amount FROM billings WHERE billing_id = ?");
-$stmt->bind_param("s", $billing_id);
-$stmt->execute();
-$total_amount = $stmt->get_result()->fetch_assoc()['total_amount'];
+$billing = $getBilling->get_result()->fetch_assoc();
+$billing_id = $billing['billing_id'];
 
-$remaining = $total_amount - $total_paid;
+// SOFT DELETE
+$delete = $conn->prepare("UPDATE payments SET deleted_at = NOW() WHERE id = ?");
+$delete->bind_param("i", $id);
+$delete->execute();
 
-if ($remaining <= 0) {
+
+// =========================
+// RECALCULATE BILLING
+// =========================
+
+$getPaid = $conn->prepare("SELECT COALESCE(SUM(amount_paid),0) AS total_paid
+    FROM payments WHERE billing_id = ?
+    AND deleted_at IS NULL AND status = 'Completed'");
+
+$getPaid->bind_param("s", $billing_id);
+$getPaid->execute();
+
+$total_paid = $getPaid->get_result()->fetch_assoc()['total_paid'];
+
+$getTotal = $conn->prepare("SELECT total_amount FROM billings WHERE billing_id = ?");
+
+$getTotal->bind_param("s", $billing_id);
+$getTotal->execute();
+
+$total_amount = $getTotal->get_result()->fetch_assoc()['total_amount'];
+
+$remaining_balance = $total_amount - $total_paid;
+
+
+// STATUS
+if ($total_paid <= 0) {
+    $billing_status = "Unpaid";
+}
+elseif ($remaining_balance <= 0) {
     $billing_status = "Paid";
-} elseif ($total_paid > 0) {
-    $billing_status = "Partial";
-} else {
+}
+else {
     $billing_status = "Pending";
 }
 
-$stmt = $conn->prepare("
-    UPDATE billings 
-    SET amount_paid = ?, remaining_balance = ?, status = ?
-    WHERE billing_id = ?
-");
-$stmt->bind_param("ddss", $total_paid, $remaining, $billing_status, $billing_id);
-$stmt->execute();
+
+// UPDATE BILLING
+$update = $conn->prepare("UPDATE billings SET amount_paid = ?,remaining_balance = ?,
+        status = ? WHERE billing_id = ?");
+
+$update->bind_param(
+    "ddss",
+    $total_paid,
+    $remaining_balance,
+    $billing_status,
+    $billing_id
+);
+
+$update->execute();
 
     // ✅ AUDIT LOG
     $log = $conn->prepare("INSERT INTO audit_logs (action, table_name, record_id, user_name)
