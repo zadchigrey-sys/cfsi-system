@@ -20,8 +20,7 @@ $stmt->execute();
 $student = $stmt->get_result()->fetch_assoc();
 
 // ✅ Get payments
-$stmt = $conn->prepare("
-    SELECT p.*, b.fee_type, b.total_amount
+$stmt = $conn->prepare("SELECT p.*, b.fee_type, b.total_amount
     FROM payments p
     JOIN billings b ON p.billing_id = b.billing_id
     WHERE p.student_id = ? AND p.deleted_at IS NULL
@@ -32,8 +31,7 @@ $stmt->execute();
 $payments = $stmt->get_result();
 
 // ✅ Total paid
-$stmt = $conn->prepare("
-    SELECT COALESCE(SUM(amount_paid),0) as total_paid
+$stmt = $conn->prepare("SELECT COALESCE(SUM(amount_paid),0) as total_paid
     FROM payments
     WHERE student_id = ? AND deleted_at IS NULL
 ");
@@ -41,8 +39,7 @@ $stmt->bind_param("s", $student_id);
 $stmt->execute();
 $total_paid = $stmt->get_result()->fetch_assoc()['total_paid'];
 
-$stmt = $conn->prepare("
-    SELECT COALESCE(SUM(b.remaining_balance),0) AS total_balance
+$stmt = $conn->prepare("SELECT COALESCE(SUM(b.remaining_balance),0) AS total_balance
     FROM billings b
     WHERE b.student_id = ? AND b.deleted_at IS NULL
 ");

@@ -24,12 +24,34 @@ ORDER BY b.remaining_balance DESC";
 
 $result = $conn->query($sql);
 
+// ADD THIS BLOCK
+$totalOutstanding = 0;
+
+while ($row = $result->fetch_assoc()) {
+    $totalOutstanding += $row['remaining_balance'];
+}
+
+// reset pointer so table can still loop again
+$result->data_seek(0);
+
 ob_start();
 ?>
 
 <h1 class="text-2xl font-bold mb-6">
     Outstanding Balances
 </h1>
+
+    <div class="bg-red-100 border border-red-300 rounded-lg p-4 mb-4">
+
+    <h2 class="text-lg font-bold text-red-700">
+        Total Outstanding Balance
+    </h2>
+
+    <p class="text-3xl font-bold text-red-800">
+        ₱<?php echo number_format($totalOutstanding, 2); ?>
+    </p>
+
+</div>
 
     <div class="relative mb-4">
     <i class="ri-search-line absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>

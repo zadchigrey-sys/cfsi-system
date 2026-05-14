@@ -88,9 +88,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // =========================
 
         $getPaid = $conn->prepare("SELECT COALESCE(SUM(amount_paid),0) AS total_paid
-            FROM payments
-            WHERE billing_id = ? AND deleted_at IS NULL
-        ");
+        FROM payments WHERE billing_id = ? AND deleted_at IS NULL
+        AND status = 'Completed'");
 
         $getPaid->bind_param("s", $billing_id);
         $getPaid->execute();
@@ -113,7 +112,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 // BILLING STATUS LOGIC
 // =========================
 
-if ($status == "Pending") {
+    if ($status == "Pending") {
 
     // Pending payments should remain outstanding
     $billing_status = "Pending";

@@ -19,14 +19,23 @@ FROM payments
 WHERE deleted_at IS NULL
 AND status = 'Completed'
 GROUP BY month_sort
-ORDER BY month_sort DESC
-";
+ORDER BY month_sort DESC";
 
 $result = $conn->query($sql);
 
 // =========================
 // START OUTPUT BUFFER
 // =========================
+$grandTotal = 0;
+
+$tempResult = $conn->query($sql);
+
+while($tempRow = $tempResult->fetch_assoc()) {
+    $grandTotal += $tempRow['total_collections'];
+}
+
+$result = $conn->query($sql);
+
 ob_start();
 ?>
 
@@ -34,6 +43,17 @@ ob_start();
     Monthly Collection Report
 </h1>
 
+    <div class="bg-blue-100 border border-blue-300 rounded-lg p-4 mb-4">
+
+    <h2 class="text-lg font-bold text-blue-700">
+        Grand Total Collections
+    </h2>
+
+    <p class="text-3xl font-bold text-blue-800">
+        ₱<?php echo number_format($grandTotal ?? 0, 2); ?>
+    </p>
+
+</div>
 
     <div class="mb-4">
     <button onclick="window.print()"
@@ -91,20 +111,6 @@ ob_start();
         <?php endwhile; ?>
 
         </tbody>
-
-        <tfoot class="bg-gray-100">
-
-            <tr>
-                <td colspan="2" class="p-4 text-right font-bold">
-                    Grand Total:
-                </td>
-
-                <td class="p-4 text-right text-xl font-bold text-blue-700">
-                    ₱<?php echo number_format($grandTotal, 2); ?>
-                </td>
-            </tr>
-
-        </tfoot>
 
     </table>
 

@@ -4,7 +4,6 @@ include "db.php";
 
 if (!isset($_SESSION['user'])) {
     header("Location: index.php");
-    exit();
 }
 
 $user = $_SESSION['user'];
@@ -15,15 +14,35 @@ $totalStudents = $conn->query("SELECT COUNT(*) as total
     WHERE deleted_at IS NULL
 ")->fetch_assoc()['total'];
 
-$totalCollected = $conn->query("SELECT COALESCE(SUM(amount_paid), 0) as total FROM payments WHERE deleted_at IS NULL AND status = 'Completed'")->fetch_assoc()['total'];
+// TOTAL COLLECTED
+$totalCollected = $conn->query("SELECT COALESCE(SUM(amount_paid), 0) AS total
+    FROM payments
+    WHERE deleted_at IS NULL
+    AND status = 'Completed'
+")->fetch_assoc()['total'] ?? 0;
 
+// OUTSTANDING BALANCE
 $outstanding = $conn->query("SELECT COALESCE(SUM(
-    CASE  WHEN remaining_balance > 0 THEN remaining_balance
-        ELSE 0 END),0) AS total FROM billings WHERE deleted_at IS NULL AND status != 'Paid'")->fetch_assoc()['total'];
+        b.total_amount - (
+            SELECT COALESCE(SUM(p.amount_paid), 0)
+            FROM payments p
+            WHERE p.billing_id = b.billing_id
+            AND p.deleted_at IS NULL
+            AND p.status = 'Completed'
+        )
+    ), 0) AS total
+    FROM billings b
+    WHERE b.deleted_at IS NULL
+")->fetch_assoc()['total'] ?? 0;
 
-$monthlyRevenue = $conn->query("SELECT COALESCE(SUM(amount_paid), 0) as total FROM payments WHERE status = 'Completed'
-AND MONTH(payment_date) = MONTH(CURDATE()) AND YEAR(payment_date) = YEAR(CURDATE()) AND deleted_at IS NULL
-")->fetch_assoc()['total'];
+// MONTHLY REVENUE
+$monthlyRevenue = $conn->query("SELECT COALESCE(SUM(amount_paid), 0) AS total
+    FROM payments
+    WHERE deleted_at IS NULL
+    AND status = 'Completed'
+    AND MONTH(payment_date) = MONTH(CURDATE())
+    AND YEAR(payment_date) = YEAR(CURDATE())
+")->fetch_assoc()['total'] ?? 0;
 
 // ===== CALENDAR EVENTS =====
 $events = [];

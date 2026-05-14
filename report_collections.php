@@ -25,7 +25,9 @@ ORDER BY p.payment_date DESC
 $result = $conn->query($sql);
 
 $totalSQL = "SELECT COALESCE(SUM(amount_paid), 0) AS total
-    FROM payments WHERE deleted_at IS NULL AND status = 'Completed'";
+    FROM payments
+    WHERE deleted_at IS NULL
+    AND status = 'Completed'";
 
 $totalResult = $conn->query($totalSQL);
 $totalRow = $totalResult->fetch_assoc();

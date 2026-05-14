@@ -11,9 +11,28 @@ $user = $_SESSION['user'];
 
 // Stats
 
-$totalCollected = $conn->query("SELECT COALESCE(SUM(amount_paid), 0) as total FROM payments WHERE deleted_at IS NULL AND status = 'Completed'")->fetch_assoc()['total'] ?? 0;
-$todayPayments = $conn->query("SELECT COALESCE(SUM(amount_paid), 0) as total FROM payments WHERE DATE(payment_date) = CURDATE()AND deleted_at IS NULL AND status = 'Completed'")->fetch_assoc()['total'] ?? 0;
-$totalPayments = $conn->query("SELECT COUNT(*) AS total FROM payments WHERE deleted_at IS NULL AND status = 'Completed'")->fetch_assoc()['total'] ?? 0;
+// TOTAL COLLECTED
+$totalCollected = $conn->query("SELECT COALESCE(SUM(amount_paid), 0) AS total
+    FROM payments
+    WHERE deleted_at IS NULL
+    AND status = 'Completed'
+")->fetch_assoc()['total'] ?? 0;
+
+// TODAY'S PAYMENTS
+$todayPayments = $conn->query("SELECT COALESCE(SUM(amount_paid), 0) AS total
+    FROM payments
+    WHERE deleted_at IS NULL
+    AND status = 'Completed'
+    AND DATE(payment_date) = CURDATE()
+")->fetch_assoc()['total'] ?? 0;
+
+// TOTAL TRANSACTIONS
+$totalPayments = $conn->query("
+    SELECT COUNT(*) AS total
+    FROM payments
+    WHERE deleted_at IS NULL
+    AND status = 'Completed'
+")->fetch_assoc()['total'] ?? 0;
 
 $search = $_GET['search'] ?? '';
 $status_filter = $_GET['status'] ?? '';
@@ -327,7 +346,7 @@ function openEditPayment(
 
     document.getElementById('payment_id').value = payment_id;
 
-    document.getElementById('payment_amount').value = amount_paid;
+    document.getElementById('payment_amount').value = payment_amount;
 
     // Student select
     document.querySelector('select[name="student_id"]').value = student_id;
