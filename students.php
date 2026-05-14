@@ -17,7 +17,7 @@ if (!empty($search)) {
 ob_start(); // START CONTENT
 ?>
 
-<h1 class="text-2xl font-bold mb-4">Students</h1>
+<h1 class="text-2xl font-bold mb-4">Students Management</h1>
 
 <div class="flex justify-between items-center mb-4">
     <form method="GET" class="relative">

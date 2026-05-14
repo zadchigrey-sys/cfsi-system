@@ -17,7 +17,7 @@ if (!empty($search)) {
 ob_start();
 ?>
 
-<h1 class="text-2xl font-bold mb-4">Billing</h1>
+<h1 class="text-2xl font-bold mb-4">Billing Management</h1>
 
 <div class="flex justify-between items-center mb-4">
 

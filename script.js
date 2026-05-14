@@ -464,3 +464,50 @@ document.addEventListener("DOMContentLoaded", function () {
     amountInput.value = selected.dataset.amount || "";
   });
 });
+
+// ===== USER MODAL =====
+
+function openUserModal() {
+  const modal = document.getElementById("userModal");
+
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+
+  document.getElementById("userForm").reset();
+
+  document.getElementById("user_id_hidden").value = "";
+
+  document.getElementById("userModalTitle").innerText = "Add User";
+
+  document.getElementById("userSubmitBtn").innerText = "Save User";
+
+  document.getElementById("userForm").action = "save_user.php";
+}
+
+function closeUserModal() {
+  const modal = document.getElementById("userModal");
+
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+}
+
+function openEditUser(id, name, email, role) {
+  const modal = document.getElementById("userModal");
+
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+
+  document.getElementById("user_id_hidden").value = id;
+
+  document.getElementById("user_name").value = name;
+
+  document.getElementById("user_email").value = email;
+
+  document.getElementById("user_role").value = role;
+
+  document.getElementById("user_password").value = "";
+
+  document.getElementById("userModalTitle").innerText = "Edit User";
+
+  document.getElementById("userSubmitBtn").innerText = "Update User";
+}

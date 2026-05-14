@@ -36,7 +36,8 @@ $user = $_SESSION['user'] ?? null;
     <a href="logs.php" class="block py-2 hover:bg-[#2a5298] rounded px-2">Audit Logs</a>
 
     <?php if (!empty($user) && $user['role'] === 'administrator'): ?>
-        <a href="#" class="block py-2 hover:bg-[#2a5298] rounded px-2">Users</a>
+        <a href="users.php"
+   class="block py-2 hover:bg-[#2a5298] rounded px-2">Users Management</a>
     <?php endif; ?>
 
     <a href="logout.php" class="block py-2 mt-6 bg-red-500 rounded text-center">Logout</a>

@@ -73,7 +73,7 @@ if (!empty($params)) {
 ob_start(); // 👈 SAME AS YOUR OTHER PAGES
 ?>
 
-<h1 class="text-2xl font-bold mb-6 text-gray-900">Payments Management</h1>
+<h1 class="text-2xl font-bold mb-6 text-gray-900">Payment Management</h1>
 
 <!-- STATS CARDS - SAME STYLE AS DASHBOARD -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
